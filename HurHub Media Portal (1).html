@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HurHub - All Apps, Games, Movies & Anime</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            purple: '#8b5cf6',
+                            cyan: '#06b6d4',
+                            pink: '#ec4899',
+                            dark: '#090d16',
+                            card: '#111827'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #070a12;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8b5cf6;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col antialiased selection:bg-purple-500 selection:text-white">
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="filterCategory('all')">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-600 via-pink-500 to-cyan-400 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-purple-500/30">
+                    H
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                        HurHub
+                    </h1>
+                    <p class="text-[10px] text-slate-400 tracking-wider uppercase font-bold">Apps • Games • Movies • Anime</p>
+                </div>
+            </div>
+
+            <!-- Global Search Input -->
+            <div class="relative flex-1 max-w-lg min-w-[240px]">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </div>
+                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search Apps, GTA, 4K Movies, Solo Leveling..." 
+                    class="w-full pl-10 pr-10 py-2.5 bg-slate-900/90 border border-slate-800 rounded-xl focus:outline-none focus:border-purple-500 text-sm text-slate-200 placeholder-slate-500 transition-all shadow-inner">
+                <button id="clearSearch" onclick="clearSearchInput()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Action Buttons -->
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleBookmarksTab()" id="bookmarkTabBtn" class="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-purple-400 hover:border-purple-500/50 transition-all text-xs font-semibold flex items-center gap-2">
+                    <i class="fa-solid fa-bookmark text-amber-400"></i>
+                    <span>Bookmarks</span>
+                    <span id="bookmarkBadge" class="bg-purple-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Navigation Scroll Bar -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 overflow-x-auto no-scrollbar">
+            <div class="flex items-center space-x-2 border-t border-slate-800/60 pt-2 text-xs font-bold">
+                <button onclick="filterCategory('all')" class="cat-btn px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white transition-all shadow-md shadow-purple-600/20 whitespace-nowrap" data-cat="all">
+                    <i class="fa-solid fa-border-all mr-1.5"></i> All Store
+                </button>
+                <button onclick="filterCategory('apps')" class="cat-btn px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-all border border-slate-800 whitespace-nowrap" data-cat="apps">
+                    <i class="fa-solid fa-mobile-screen mr-1.5 text-cyan-400"></i> HurApp
+                </button>
+                <button onclick="filterCategory('games')" class="cat-btn px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-all border border-slate-800 whitespace-nowrap" data-cat="games">
+                    <i class="fa-solid fa-gamepad mr-1.5 text-emerald-400"></i> HurGames
+                </button>
+                <button onclick="filterCategory('movies')" class="cat-btn px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-all border border-slate-800 whitespace-nowrap" data-cat="movies">
+                    <i class="fa-solid fa-film mr-1.5 text-pink-400"></i> HurMovies
+                </button>
+                <button onclick="filterCategory('anime')" class="cat-btn px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-all border border-slate-800 whitespace-nowrap" data-cat="anime">
+                    <i class="fa-solid fa-tv mr-1.5 text-purple-400"></i> HurAnime
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Showcase Section -->
+    <section id="heroSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <div class="relative rounded-3xl overflow-hidden glass-panel border border-slate-800 p-6 sm:p-10 shadow-2xl">
+            <div class="relative z-10 max-w-2xl">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="inline-block px-3 py-1 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold rounded-full">
+                        ✨ 100% Original High-Quality Releases
+                    </span>
+                    <span class="inline-block px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-full">
+                        ⚡ High Speed Direct Mirrors
+                    </span>
+                </div>
+                <h2 class="text-3xl sm:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">
+                    All Apps, Games, Movies & Anime <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">In One Place</span>
+                </h2>
+                <p class="text-slate-400 text-sm sm:text-base mb-6 leading-relaxed">
+                    Download verified original quality APKs, 4K Uncut Anime, Remux Movies, and High-Graphics Games with full thumbnails, posters, and fast mirrors.
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="filterCategory('anime')" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-sm transition-all shadow-lg shadow-purple-600/30 flex items-center gap-2">
+                        <i class="fa-solid fa-tv"></i> Browse HurAnime
+                    </button>
+                    <button onclick="filterCategory('games')" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold text-sm transition-all border border-slate-700 flex items-center gap-2">
+                        <i class="fa-solid fa-gamepad"></i> Explore HurGames
+                    </button>
+                </div>
+            </div>
+            <!-- Decorative Glow Backgrounds -->
+            <div class="absolute -right-12 -bottom-12 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-12 -top-12 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        </div>
+    </section>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <!-- Section Header Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h3 id="sectionTitle" class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-sparkles text-purple-400"></i> All Original Releases
+            </h3>
+            
+            <div class="flex items-center space-x-3 text-xs">
+                <!-- Genre Filter Dropdown -->
+                <select id="genreSelect" onchange="applyFilterAndSearch()" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-slate-300 focus:outline-none focus:border-purple-500 font-medium">
+                    <option value="all">All Genres</option>
+                    <option value="action">Action / RPG</option>
+                    <option value="sci-fi">Sci-Fi / Fantasy</option>
+                    <option value="tools">Tools / Productivity</option>
+                    <option value="anime">Anime Series</option>
+                </select>
+
+                <span id="itemCount" class="text-slate-400 font-bold bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl whitespace-nowrap">
+                    0 Items Found
+                </span>
+            </div>
+        </div>
+
+        <!-- Dynamic Content Grid -->
+        <div id="contentGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Content Items dynamically populated here -->
+        </div>
+
+        <!-- Empty Results Placeholder -->
+        <div id="emptyState" class="hidden text-center py-20">
+            <div class="w-20 h-20 bg-slate-900/80 rounded-full flex items-center justify-center mx-auto text-slate-600 mb-4 border border-slate-800">
+                <i class="fa-solid fa-folder-open text-3xl"></i>
+            </div>
+            <h4 class="text-lg font-bold text-slate-300">No matching items found</h4>
+            <p class="text-slate-500 text-sm mt-1">Try resetting search filters or selecting another category.</p>
+            <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-all">
+                Reset All Filters
+            </button>
+        </div>
+    </main>
+
+    <!-- Detailed View Modal -->
+    <div id="detailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300 p-4 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 my-8" id="modalContainer">
+            <!-- Modal Poster Header -->
+            <div class="relative h-64 sm:h-80 w-full overflow-hidden bg-slate-950">
+                <img id="modalBanner" src="" alt="Thumbnail" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent"></div>
+                
+                <!-- Modal Close Button -->
+                <button onclick="closeModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-slate-950/80 border border-slate-700 text-slate-300 hover:text-white flex items-center justify-center backdrop-blur-md transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+
+                <!-- Badges -->
+                <div class="absolute bottom-4 left-6 flex flex-wrap items-center gap-2">
+                    <span id="modalQuality" class="px-3 py-1 bg-cyan-400 text-slate-950 font-black text-xs rounded-md uppercase">4K ULTRA HD</span>
+                    <span id="modalCategory" class="px-3 py-1 bg-purple-600 text-white font-black text-xs rounded-md uppercase">ANIME</span>
+                    <span id="modalBadge" class="px-3 py-1 bg-pink-600 text-white font-black text-xs rounded-md uppercase">ORIGINAL</span>
+                </div>
+            </div>
+
+            <!-- Modal Information Body -->
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h2 id="modalTitle" class="text-2xl sm:text-3xl font-extrabold text-white mb-2 leading-tight">Item Title</h2>
+                        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 font-semibold">
+                            <span id="modalRating" class="text-amber-400 font-bold flex items-center gap-1">
+                                <i class="fa-solid fa-star"></i> 4.9
+                            </span>
+                            <span>•</span>
+                            <span id="modalSize"><i class="fa-solid fa-hard-drive"></i> 1.2 GB</span>
+                            <span>•</span>
+                            <span id="modalVer"><i class="fa-solid fa-code-branch"></i> v1.0</span>
+                            <span>•</span>
+                            <span id="modalGenre" class="text-purple-400">Action</span>
+                        </div>
+                    </div>
+
+                    <!-- Modal Bookmark Toggle Button -->
+                    <button id="modalBookmarkBtn" onclick="toggleBookmarkFromModal()" class="p-3 rounded-2xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-400 transition-colors">
+                        <i class="fa-solid fa-bookmark text-lg"></i>
+                    </button>
+                </div>
+
+                <p id="modalDesc" class="text-slate-300 text-sm leading-relaxed mb-6">
+                    Full media description loads here...
+                </p>
+
+                <!-- Download Action Card -->
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs text-slate-400 font-semibold">
+                            Original File Status: <span class="text-emerald-400 font-bold">Verified Direct Mirror</span>
+                        </span>
+                        <span class="text-xs text-slate-500 font-medium" id="modalDownloads">
+                            <i class="fa-solid fa-download"></i> 124K Downloads
+                        </span>
+                    </div>
+
+                    <!-- Download Simulation Progress -->
+                    <div id="progressBox" class="hidden mb-4">
+                        <div class="flex justify-between text-xs text-slate-400 font-semibold mb-1.5">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-bolt text-amber-400 animate-pulse"></i> Downloading High-Speed File...</span>
+                            <span id="progressPercent" class="text-cyan-400">0%</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                            <div id="progressBar" class="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-400 w-0 transition-all duration-200"></div>
+                        </div>
+                    </div>
+
+                    <button id="downloadBtn" onclick="startDownload()" class="w-full py-3.5 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-extrabold rounded-xl shadow-lg shadow-purple-600/30 transition-all flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-download"></i> Download Original High Quality File
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-purple-500/40 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center space-x-3 transform translate-y-24 opacity-0 transition-all duration-300">
+        <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <i class="fa-solid fa-check text-sm"></i>
+        </div>
+        <span id="toastMsg" class="text-xs sm:text-sm font-semibold">Success message!</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <div class="flex items-center space-x-2">
+                <span class="font-extrabold text-purple-400">HurHub Portal</span>
+                <span>•</span>
+                <p>© 2026 All Apps, Games, Movies & Anime Original Quality.</p>
+            </div>
+            <div class="flex space-x-4">
+                <a href="#" class="hover:text-purple-400 transition-colors">HurApp Direct</a>
+                <a href="#" class="hover:text-purple-400 transition-colors">HurAnime Uncut</a>
+                <a href="#" class="hover:text-purple-400 transition-colors">HurGames APK</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Full Dataset containing Apps, Games, Movies, and Anime in Original Quality
+        const mediaItems = [
+            {
+                id: 1,
+                title: "Solo Leveling: Arise",
+                category: "anime",
+                genre: "anime",
+                quality: "4K UHD",
+                badge: "Uncut Sub/Dub",
+                rating: 4.9,
+                downloads: "3.2M",
+                size: "14.2 GB",
+                version: "Dual Audio 2160p",
+                image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80",
+                description: "Watch the full Solo Leveling series in raw high-bitrate 4K Ultra HD quality with original uncut scenes and lossless audio tracks."
+            },
+            {
+                id: 2,
+                title: "Grand Theft Auto: San Andreas Mobile",
+                category: "games",
+                genre: "action",
+                quality: "MOD APK + OBB",
+                badge: "Full Unlocked",
+                rating: 4.8,
+                downloads: "5.1M",
+                size: "2.4 GB",
+                version: "v2.11 Remastered",
+                image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=800&q=80",
+                description: "Experience classic open-world gameplay on mobile with enhanced high-resolution graphics, unlimited money MOD, and touch controls."
+            },
+            {
+                id: 3,
+                title: "Lightroom Mobile Pro",
+                category: "apps",
+                genre: "tools",
+                quality: "PREMIUM",
+                badge: "VIP Unlocked",
+                rating: 4.7,
+                downloads: "1.8M",
+                size: "120 MB",
+                version: "v9.2.0 Pro",
+                image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80",
+                description: "Professional photo editor and camera app with unlocked presets, RAW editing capabilities, and AI object removal features."
+            },
+            {
+                id: 4,
+                title: "Dune: Part Two",
+                category: "movies",
+                genre: "sci-fi",
+                quality: "4K REMUX",
+                badge: "IMAX Atmos",
+                rating: 5.0,
+                downloads: "2.1M",
+                size: "22.5 GB",
+                version: "2160p HDR10+",
+                image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80",
+                description: "Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family."
+            },
+            {
+                id: 5,
+                title: "Demon Slayer: Kimetsu no Yaiba",
+                category: "anime",
+                genre: "anime",
+                quality: "1080p Master",
+                badge: "Original Release",
+                rating: 4.9,
+                downloads: "4.8M",
+                size: "18.0 GB",
+                version: "Hashira Training Arc",
+                image: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80",
+                description: "High frame-rate original release featuring crystal clear battle sequences and dual audio commentary."
+            },
+            {
+                id: 6,
+                title: "Cyberpunk 2077 Mobile Edition",
+                category: "games",
+                genre: "action",
+                quality: "APK High-Graphics",
+                badge: "60 FPS Unlocked",
+                rating: 4.6,
+                downloads: "950K",
+                size: "4.8 GB",
+                version: "v1.5 Full",
+                image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80",
+                description: "Explore Night City on mobile devices optimized with maximum ray tracing graphics presets and unlocked storyline."
+            },
+            {
+                id: 7,
+                title: "CapCut Pro Video Editor",
+                category: "apps",
+                genre: "tools",
+                quality: "MOD EXTRA",
+                badge: "No Watermark",
+                rating: 4.8,
+                downloads: "6.4M",
+                size: "185 MB",
+                version: "v11.4.0 Premium",
+                image: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=800&q=80",
+                description: "All premium effects, 4K export options, AI velocity motion effects, and speed curves completely unlocked."
+            },
+            {
+                id: 8,
+                title: "Oppenheimer",
+                category: "movies",
+                genre: "action",
+                quality: "4K UHD",
+                badge: "Director's Master",
+                rating: 4.9,
+                downloads: "1.9M",
+                size: "19.4 GB",
+                version: "70mm IMAX Rip",
+                image: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=800&q=80",
+                description: "Christopher Nolan's masterpiece presented in lossless 4K resolution with original 7.1 channel audio mix."
+            },
+            {
+                id: 9,
+                title: "Jujutsu Kaisen: Shibuya Incident",
+                category: "anime",
+                genre: "anime",
+                quality: "4K HD",
+                badge: "Uncut BluRay",
+                rating: 5.0,
+                downloads: "5.5M",
+                size: "16.1 GB",
+                version: "Full Season",
+                image: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80",
+                description: "The complete Shibuya Arc in uncompressed video quality with all TV broadcast censoring removed."
+            },
+            {
+                id: 10,
+                title: "Genshin Impact Mobile HD",
+                category: "games",
+                genre: "sci-fi",
+                quality: "Original APK",
+                badge: "Max Texture Pack",
+                rating: 4.7,
+                downloads: "8.1M",
+                size: "12.0 GB",
+                version: "v4.6.0",
+                image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=800&q=80",
+                description: "Journey across Teyvat in high definition. Fast direct download mirror for full game assets and regional voice packs."
+            },
+            {
+                id: 11,
+                title: "VPN Unlimited Turbo Pro",
+                category: "apps",
+                genre: "tools",
+                quality: "PREMIUM",
+                badge: "VIP Servers",
+                rating: 4.8,
+                downloads: "3.5M",
+                size: "35 MB",
+                version: "v6.1.2",
+                image: "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=800&q=80",
+                description: "High speed encrypted connection with 100+ global locations, unlimited bandwidth, and zero logging policy."
+            },
+            {
+                id: 12,
+                title: "Interstellar",
+                category: "movies",
+                genre: "sci-fi",
+                quality: "4K REMUX",
+                badge: "Classic Original",
+                rating: 5.0,
+                downloads: "4.2M",
+                size: "24.8 GB",
+                version: "IMAX Master",
+                image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=800&q=80",
+                description: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival."
+            }
+        ];
+
+        let currentCategory = 'all';
+        let currentActiveItem = null;
+        let bookmarkedIds = JSON.parse(localStorage.getItem('hurhub_bookmarks') || '[]');
+        let showingOnlyBookmarks = false;
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            updateBookmarkBadge();
+            applyFilterAndSearch();
+        });
+
+        // Main Filter & Render Logic
+        function renderGrid(items) {
+            const grid = document.getElementById('contentGrid');
+            const emptyState = document.getElementById('emptyState');
+            const itemCount = document.getElementById('itemCount');
+            
+            grid.innerHTML = '';
+            itemCount.textContent = `${items.length} Items Found`;
+
+            if (items.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            items.forEach(item => {
+                const isBookmarked = bookmarkedIds.includes(item.id);
+                const card = document.createElement('div');
+                card.className = "group bg-slate-900 border border-slate-800/80 hover:border-purple-500/50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-purple-500/10 flex flex-col";
+                
+                card.innerHTML = `
+                    <!-- Thumbnail Container -->
+                    <div class="relative h-52 overflow-hidden bg-slate-950">
+                        <img src="${item.image}" alt="${item.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/30 to-transparent"></div>
+                        
+                        <!-- Top Badges -->
+                        <div class="absolute top-3 left-3 flex flex-wrap gap-1">
+                            <span class="px-2 py-0.5 bg-slate-950/80 backdrop-blur-md text-cyan-400 font-black text-[10px] border border-cyan-500/30 rounded-md uppercase">
+                                ${item.quality}
+                            </span>
+                        </div>
+
+                        <div class="absolute top-3 right-3 flex items-center space-x-1">
+                            <button onclick="event.stopPropagation(); toggleBookmark(${item.id})" class="w-7 h-7 rounded-lg bg-slate-950/80 backdrop-blur-md border border-slate-800 text-slate-300 hover:text-amber-400 flex items-center justify-center transition-colors">
+                                <i class="fa-solid fa-bookmark ${isBookmarked ? 'text-amber-400' : ''}"></i>
+                            </button>
+                            <span class="px-2 py-0.5 bg-purple-600/90 backdrop-blur-md text-white font-extrabold text-[10px] rounded-md uppercase tracking-wider">
+                                ${item.category}
+                            </span>
+                        </div>
+
+                        <!-- Rating & Downloads -->
+                        <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs font-bold">
+                            <span class="text-amber-400 flex items-center gap-1 bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800">
+                                <i class="fa-solid fa-star text-[10px]"></i> ${item.rating}
+                            </span>
+                            <span class="text-slate-300 bg-slate-950/80 px-2 py-0.5 rounded-md border border-slate-800">
+                                <i class="fa-solid fa-download text-[10px]"></i> ${item.downloads}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Card Details -->
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[10px] font-extrabold text-pink-400 uppercase tracking-wide">${item.badge}</span>
+                            </div>
+                            <h4 class="font-extrabold text-slate-100 group-hover:text-purple-400 transition-colors line-clamp-1 text-base mb-1.5">
+                                ${item.title}
+                            </h4>
+                            <p class="text-slate-400 text-xs line-clamp-2 leading-relaxed mb-4">
+                                ${item.description}
+                            </p>
+                        </div>
+
+                        <button onclick="openModal(${item.id})" class="w-full py-2.5 bg-slate-800/90 hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 text-slate-200 hover:text-white text-xs font-bold rounded-xl border border-slate-700 hover:border-purple-500 transition-all flex items-center justify-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-circle-info"></i> Details & Download
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Category Switch
+        function filterCategory(cat) {
+            currentCategory = cat;
+            showingOnlyBookmarks = false;
+            
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if (btn.dataset.cat === cat) {
+                    btn.className = "cat-btn px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white transition-all shadow-md shadow-purple-600/20 whitespace-nowrap";
+                } else {
+                    btn.className = "cat-btn px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-all border border-slate-800 whitespace-nowrap";
+                }
+            });
+
+            const sectionTitle = document.getElementById('sectionTitle');
+            const titles = {
+                all: '<i class="fa-solid fa-sparkles text-purple-400"></i> All Original Releases',
+                apps: '<i class="fa-solid fa-mobile-screen text-cyan-400"></i> HurApp - Premium Apps',
+                games: '<i class="fa-solid fa-gamepad text-emerald-400"></i> HurGames - Mobile & PC Games',
+                movies: '<i class="fa-solid fa-film text-pink-400"></i> HurMovies - 4K UHD Cinema',
+                anime: '<i class="fa-solid fa-tv text-purple-400"></i> HurAnime - Uncut Series'
+            };
+            sectionTitle.innerHTML = titles[cat] || 'Media Items';
+
+            applyFilterAndSearch();
+        }
+
+        // Toggle Bookmarks Tab View
+        function toggleBookmarksTab() {
+            showingOnlyBookmarks = !showingOnlyBookmarks;
+            const sectionTitle = document.getElementById('sectionTitle');
+
+            if (showingOnlyBookmarks) {
+                sectionTitle.innerHTML = '<i class="fa-solid fa-bookmark text-amber-400"></i> Saved Bookmarks';
+            } else {
+                filterCategory(currentCategory);
+                return;
+            }
+
+            applyFilterAndSearch();
+        }
+
+        // Live Search & Genre Filter Trigger
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value;
+            const clearBtn = document.getElementById('clearSearch');
+            if (query.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            applyFilterAndSearch();
+        }
+
+        function clearSearchInput() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearch').classList.add('hidden');
+            applyFilterAndSearch();
+        }
+
+        function applyFilterAndSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const genre = document.getElementById('genreSelect').value;
+
+            const filtered = mediaItems.filter(item => {
+                const matchesCategory = (currentCategory === 'all') || (item.category === currentCategory);
+                const matchesGenre = (genre === 'all') || (item.genre === genre);
+                const matchesBookmark = !showingOnlyBookmarks || bookmarkedIds.includes(item.id);
+                const matchesQuery = item.title.toLowerCase().includes(query) || 
+                                     item.description.toLowerCase().includes(query) ||
+                                     item.category.toLowerCase().includes(query) ||
+                                     item.badge.toLowerCase().includes(query);
+                
+                return matchesCategory && matchesGenre && matchesBookmark && matchesQuery;
+            });
+
+            renderGrid(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('genreSelect').value = 'all';
+            document.getElementById('clearSearch').classList.add('hidden');
+            filterCategory('all');
+        }
+
+        // Modal Open / Close Logic
+        function openModal(id) {
+            const item = mediaItems.find(i => i.id === id);
+            if (!item) return;
+
+            currentActiveItem = item;
+
+            document.getElementById('modalBanner').src = item.image;
+            document.getElementById('modalTitle').textContent = item.title;
+            document.getElementById('modalQuality').textContent = item.quality;
+            document.getElementById('modalCategory').textContent = item.category;
+            document.getElementById('modalBadge').textContent = item.badge;
+            document.getElementById('modalRating').innerHTML = `<i class="fa-solid fa-star"></i> ${item.rating}`;
+            document.getElementById('modalSize').innerHTML = `<i class="fa-solid fa-hard-drive"></i> ${item.size}`;
+            document.getElementById('modalVer').innerHTML = `<i class="fa-solid fa-code-branch"></i> ${item.version}`;
+            document.getElementById('modalGenre').textContent = `#${item.genre.toUpperCase()}`;
+            document.getElementById('modalDesc').textContent = item.description;
+            document.getElementById('modalDownloads').innerHTML = `<i class="fa-solid fa-download"></i> ${item.downloads} Downloads`;
+
+            updateModalBookmarkBtn();
+
+            // Reset Download State
+            document.getElementById('progressBox').classList.add('hidden');
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('downloadBtn').disabled = false;
+            document.getElementById('downloadBtn').innerHTML = `<i class="fa-solid fa-download"></i> Download Original High Quality File`;
+
+            const modal = document.getElementById('detailModal');
+            const container = document.getElementById('modalContainer');
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            container.classList.remove('scale-95');
+            container.classList.add('scale-100');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('detailModal');
+            const container = document.getElementById('modalContainer');
+
+            container.classList.remove('scale-100');
+            container.classList.add('scale-95');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        // Bookmark Toggle Logic
+        function toggleBookmark(id) {
+            if (bookmarkedIds.includes(id)) {
+                bookmarkedIds = bookmarkedIds.filter(i => i !== id);
+                showToast("Removed from Bookmarks");
+            } else {
+                bookmarkedIds.push(id);
+                showToast("Saved to Bookmarks!");
+            }
+            localStorage.setItem('hurhub_bookmarks', JSON.stringify(bookmarkedIds));
+            updateBookmarkBadge();
+            applyFilterAndSearch();
+        }
+
+        function toggleBookmarkFromModal() {
+            if (currentActiveItem) {
+                toggleBookmark(currentActiveItem.id);
+                updateModalBookmarkBtn();
+            }
+        }
+
+        function updateModalBookmarkBtn() {
+            const btn = document.getElementById('modalBookmarkBtn');
+            if (currentActiveItem && bookmarkedIds.includes(currentActiveItem.id)) {
+                btn.innerHTML = `<i class="fa-solid fa-bookmark text-amber-400 text-lg"></i>`;
+            } else {
+                btn.innerHTML = `<i class="fa-regular fa-bookmark text-slate-300 text-lg"></i>`;
+            }
+        }
+
+        function updateBookmarkBadge() {
+            document.getElementById('bookmarkBadge').textContent = bookmarkedIds.length;
+        }
+
+        // Simulated High-Speed Download Logic
+        function startDownload() {
+            const progressBox = document.getElementById('progressBox');
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = document.getElementById('progressPercent');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            progressBox.classList.remove('hidden');
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Connecting to Direct Mirror...`;
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 25) + 10;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    progressBar.style.width = '100%';
+                    progressPercent.textContent = '100%';
+                    
+                    downloadBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Download Link Ready! Opening...`;
+                    
+                    showToast(`Original quality file for ${currentActiveItem.title} ready!`);
+                    
+                    setTimeout(() => {
+                        closeModal();
+                    }, 1800);
+                } else {
+                    progressBar.style.width = progress + '%';
+                    progressPercent.textContent = progress + '%';
+                }
+            }, 200);
+        }
+
+        // Toast Notification System
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            
+            toastMsg.textContent = message;
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
