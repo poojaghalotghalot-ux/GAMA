@@ -1,33 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web App - Phone OTP Authentication</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Live Web Login with OTP</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase App & Auth SDKs (v9/v10 Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
 
     <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-md shadow-2xl">
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold text-sky-400">Account Login</h1>
-            <p class="text-slate-400 text-sm mt-1">Apne mobile number se login karein</p>
+            <h1 class="text-2xl font-bold text-sky-400">Web Account Login</h1>
+            <p class="text-slate-400 text-sm mt-1">Apna 10-digit mobile number enter karein</p>
         </div>
 
-        <!-- Notification Banner -->
+        <!-- Notification Message -->
         <div id="alert-box" class="hidden mb-4 p-3 rounded-lg text-sm text-center"></div>
 
-        <!-- STEP 1: Phone Number Input -->
+        <!-- STEP 1: Phone Input Form -->
         <form id="phone-form" class="space-y-4">
             <div>
                 <label for="phone-input" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Mobile Number</label>
                 <div class="flex">
-                    <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-600 bg-slate-700 text-slate-300 text-sm">+91</span>
+                    <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-600 bg-slate-700 text-slate-300 text-sm font-semibold">+91</span>
                     <input type="tel" id="phone-input" maxlength="10" placeholder="9876543210" required 
                            class="w-full bg-slate-900 border border-slate-600 rounded-r-lg px-4 py-3 text-white focus:outline-none focus:border-sky-500 transition">
                 </div>
             </div>
+
+            <!-- Recaptcha Container Required by Firebase -->
+            <div id="recaptcha-container" class="my-2 flex justify-center"></div>
 
             <button type="submit" id="send-otp-btn" 
                     class="w-full bg-sky-600 hover:bg-sky-500 text-white font-semibold py-3 rounded-lg transition duration-200 disabled:opacity-50">
@@ -35,12 +42,12 @@
             </button>
         </form>
 
-        <!-- STEP 2: OTP Input (Initially Hidden) -->
+        <!-- STEP 2: OTP Input Form (Initially Hidden) -->
         <form id="otp-form" class="space-y-4 hidden mt-4">
             <div>
                 <div class="flex justify-between items-center mb-2">
-                    <label for="otp-input" class="text-xs font-semibold text-slate-300 uppercase tracking-wider">6-Digit OTP</label>
-                    <span id="target-phone" class="text-xs text-sky-400"></span>
+                    <label for="otp-input" class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Enter 6-Digit OTP</label>
+                    <span id="target-phone" class="text-xs text-sky-400 font-mono"></span>
                 </div>
                 <input type="text" id="otp-input" maxlength="6" placeholder="123456" required
                        class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-center text-xl font-mono tracking-widest text-white focus:outline-none focus:border-sky-500 transition">
@@ -48,21 +55,33 @@
 
             <button type="submit" id="verify-otp-btn" 
                     class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-lg transition duration-200 disabled:opacity-50">
-                OTP Verify Karein
+                Verify & Login
             </button>
 
-            <div class="flex justify-between items-center text-xs text-slate-400 mt-2">
-                <button type="button" id="resend-btn" disabled class="hover:underline disabled:text-slate-600">
-                    Resend OTP
-                </button>
-                <span id="timer-text">00:30</span>
-            </div>
+            <button type="button" id="change-num-btn" class="w-full text-xs text-slate-400 hover:underline text-center">
+                Galat number hai? Dusra number daalein
+            </button>
         </form>
     </div>
 
     <script>
-        // Backend Server URL
-        const BACKEND_URL = "http://localhost:5000/api";
+        // ==========================================
+        // 1. FIREBASE CONFIGURATION
+        // Firebase Console (Console > Project Settings) se apni keys daalein:
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
 
         const phoneForm = document.getElementById('phone-form');
         const otpForm = document.getElementById('otp-form');
@@ -70,122 +89,119 @@
         const otpInput = document.getElementById('otp-input');
         const sendBtn = document.getElementById('send-otp-btn');
         const verifyBtn = document.getElementById('verify-otp-btn');
-        const resendBtn = document.getElementById('resend-btn');
         const alertBox = document.getElementById('alert-box');
         const targetPhoneLabel = document.getElementById('target-phone');
-        const timerText = document.getElementById('timer-text');
+        const changeNumBtn = document.getElementById('change-num-btn');
 
-        let fullPhoneNumber = '';
-        let timerInterval = null;
+        let confirmationResult = null;
 
-        function showAlert(message, type = 'error') {
+        function showAlert(message, isError = true) {
             alertBox.innerText = message;
-            alertBox.classList.remove('hidden', 'bg-red-500/10', 'text-red-400', 'bg-emerald-500/10', 'text-emerald-400', 'border-red-500/20', 'border-emerald-500/20');
-            
-            if (type === 'error') {
-                alertBox.classList.add('bg-red-500/10', 'text-red-400', 'border', 'border-red-500/20');
-            } else {
-                alertBox.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/20');
-            }
+            alertBox.className = `mb-4 p-3 rounded-lg text-sm text-center border ${
+                isError 
+                ? 'bg-red-500/10 text-red-400 border-red-500/20' 
+                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+            }`;
+            alertBox.classList.remove('hidden');
         }
 
-        function startTimer(seconds = 30) {
-            clearInterval(timerInterval);
-            let left = seconds;
-            resendBtn.disabled = true;
-
-            timerInterval = setInterval(() => {
-                left--;
-                timerText.innerText = `00:${left < 10 ? '0' : ''}${left}`;
-                if (left <= 0) {
-                    clearInterval(timerInterval);
-                    timerText.innerText = '';
-                    resendBtn.disabled = false;
+        // Initialize Recaptcha Verifier
+        window.onload = function() {
+            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response) => {
+                    // reCAPTCHA solved
                 }
-            }, 1000);
-        }
+            });
+        };
 
-        // Send OTP Action
+        // STEP 1: Send OTP to Phone
         phoneForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const rawPhone = phoneInput.value.trim();
 
             if (rawPhone.length !== 10) {
-                showAlert('Kripya 10-digit ka valid mobile number likhein.');
+                showAlert("Kripya sahi 10-digit mobile number darj karein.");
                 return;
             }
 
-            fullPhoneNumber = `+91${rawPhone}`;
+            const formattedPhone = `+91${rawPhone}`;
             sendBtn.disabled = true;
-            sendBtn.innerText = 'Bhej rahe hain...';
+            sendBtn.innerText = "OTP Bhej rahe hain...";
+            alertBox.classList.add('hidden');
 
-            try {
-                const response = await fetch(`${BACKEND_URL}/send-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: fullPhoneNumber })
-                });
+            const appVerifier = window.recaptchaVerifier;
 
-                const data = await response.json();
-
-                if (response.ok) {
-                    showAlert('OTP aapke mobile number par bhej diya gaya h!', 'success');
+            firebase.auth().signInWithPhoneNumber(formattedPhone, appVerifier)
+                .then((result) => {
+                    confirmationResult = result;
+                    showAlert("OTP aapke mobile par bhej diya gaya!", false);
                     phoneForm.classList.add('hidden');
                     otpForm.classList.remove('hidden');
-                    targetPhoneLabel.innerText = fullPhoneNumber;
-                    startTimer(30);
-                } else {
-                    throw new Error(data.message || 'OTP bhejne me samasya aayi.');
-                }
-            } catch (err) {
-                showAlert(err.message || 'Server error! Check karein ki Backend server live hai ya nahi.');
-            } finally {
-                sendBtn.disabled = false;
-                sendBtn.innerText = 'OTP Bhejein';
-            }
+                    targetPhoneLabel.innerText = formattedPhone;
+                })
+                .catch((error) => {
+                    console.error("Firebase Auth Error:", error);
+                    showAlert(error.message || "OTP bhejne me samasya aayi. Firebase Config ya Phone Provider verify karein.");
+                    if (window.recaptchaVerifier) {
+                        window.recaptchaVerifier.render().then(widgetId => {
+                            grecaptcha.reset(widgetId);
+                        });
+                    }
+                })
+                .finally(() => {
+                    sendBtn.disabled = false;
+                    sendBtn.innerText = "OTP Bhejein";
+                });
         });
 
-        // Verify OTP Action
+        // STEP 2: Verify OTP
         otpForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const otpVal = otpInput.value.trim();
+            const code = otpInput.value.trim();
 
-            if (otpVal.length !== 6) {
-                showAlert('6-digit ka valid OTP daalein.');
+            if (code.length !== 6) {
+                showAlert("Sahi 6-digit OTP code daalein.");
                 return;
             }
 
             verifyBtn.disabled = true;
-            verifyBtn.innerText = 'Verify kar rahe hain...';
+            verifyBtn.innerText = "Verifying...";
 
-            try {
-                const response = await fetch(`${BACKEND_URL}/verify-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: fullPhoneNumber, otp: otpVal })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showAlert('Login Safal Hua! Dashboard par redirect ho rahe hain...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/dashboard.html';
-                    }, 1500);
-                } else {
-                    throw new Error(data.message || 'Galat OTP daala hai.');
-                }
-            } catch (err) {
-                showAlert(err.message || 'Verification fail ho gaya.');
-            } finally {
-                verifyBtn.disabled = false;
-                verifyBtn.innerText = 'OTP Verify Karein';
+            if (!confirmationResult) {
+                showAlert("Session expire ho gaya. Dobara try karein.");
+                return;
             }
+
+            confirmationResult.confirm(code)
+                .then((result) => {
+                    const user = result.user;
+                    showAlert("Login Successful! Redirect ho rahe hain...", false);
+                    
+                    // User Auth Token & Data
+                    user.getIdToken().then(token => {
+                        console.log("Logged In User Token:", token);
+                        setTimeout(() => {
+                            window.location.href = "/dashboard.html"; // Redirect path
+                        }, 1500);
+                    });
+                })
+                .catch((error) => {
+                    console.error("Verification Error:", error);
+                    showAlert("Galat OTP code! Phir se verify karke daalein.");
+                })
+                .finally(() => {
+                    verifyBtn.disabled = false;
+                    verifyBtn.innerText = "Verify & Login";
+                });
         });
 
-        // Resend OTP Action
-        resendBtn.addEventListener('click', () => {
-            phoneForm.dispatchEvent(new Event('submit'));
+        // Reset Form Action
+        changeNumBtn.addEventListener('click', () => {
+            otpForm.classList.add('hidden');
+            phoneForm.classList.remove('hidden');
+            alertBox.classList.add('hidden');
+            otpInput.value = '';
         });
     </script>
 </body>
