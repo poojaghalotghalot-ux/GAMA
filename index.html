@@ -1,256 +1,191 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Login with OTP</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .card {
-            background-color: #1e293b;
-            padding: 32px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid #334155;
-        }
-
-        .card h2 {
-            margin-bottom: 8px;
-            color: #38bdf8;
-            font-size: 24px;
-        }
-
-        .card p {
-            color: #94a3b8;
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            margin-bottom: 8px;
-            color: #cbd5e1;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #475569;
-            background-color: #0f172a;
-            color: #ffffff;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .form-group input:focus {
-            border-color: #38bdf8;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            background-color: #0284c7;
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .btn:hover {
-            background-color: #0369a1;
-        }
-
-        .btn:disabled {
-            background-color: #475569;
-            cursor: not-allowed;
-        }
-
-        .status-msg {
-            margin-top: 16px;
-            font-size: 14px;
-            text-align: center;
-        }
-
-        .status-msg.error {
-            color: #f87171;
-        }
-
-        .status-msg.success {
-            color: #4ade80;
-        }
-
-        .hidden {
-            display: none;
-        }
-    </style>
+    <title>Web App - Phone OTP Authentication</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="card">
-        <!-- Step 1: Phone / Mobile Input -->
-        <div id="step-mobile">
-            <h2>Account Login</h2>
-            <p>Apna mobile number daal kar OTP praapt karein</p>
-            
-            <form id="mobile-form">
-                <div class="form-group">
-                    <label for="phone">Mobile Number</label>
-                    <input type="tel" id="phone" placeholder="+91 9876543210" required />
-                </div>
-                <button type="submit" class="btn" id="send-otp-btn">OTP Bhejein</button>
-            </form>
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-md shadow-2xl">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-sky-400">Account Login</h1>
+            <p class="text-slate-400 text-sm mt-1">Apne mobile number se login karein</p>
         </div>
 
-        <!-- Step 2: OTP Verification -->
-        <div id="step-otp" class="hidden">
-            <h2>Verify OTP</h2>
-            <p id="otp-sent-to">OTP aapke mobile par bhej diya gaya hai</p>
+        <!-- Notification Banner -->
+        <div id="alert-box" class="hidden mb-4 p-3 rounded-lg text-sm text-center"></div>
 
-            <form id="otp-form">
-                <div class="form-group">
-                    <label for="otp">Enter 6-Digit OTP</label>
-                    <input type="text" id="otp" maxlength="6" placeholder="123456" required />
+        <!-- STEP 1: Phone Number Input -->
+        <form id="phone-form" class="space-y-4">
+            <div>
+                <label for="phone-input" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Mobile Number</label>
+                <div class="flex">
+                    <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-600 bg-slate-700 text-slate-300 text-sm">+91</span>
+                    <input type="tel" id="phone-input" maxlength="10" placeholder="9876543210" required 
+                           class="w-full bg-slate-900 border border-slate-600 rounded-r-lg px-4 py-3 text-white focus:outline-none focus:border-sky-500 transition">
                 </div>
-                <button type="submit" class="btn" id="verify-otp-btn">Verify & Login</button>
-            </form>
-        </div>
+            </div>
 
-        <div id="status-message" class="status-msg"></div>
+            <button type="submit" id="send-otp-btn" 
+                    class="w-full bg-sky-600 hover:bg-sky-500 text-white font-semibold py-3 rounded-lg transition duration-200 disabled:opacity-50">
+                OTP Bhejein
+            </button>
+        </form>
+
+        <!-- STEP 2: OTP Input (Initially Hidden) -->
+        <form id="otp-form" class="space-y-4 hidden mt-4">
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <label for="otp-input" class="text-xs font-semibold text-slate-300 uppercase tracking-wider">6-Digit OTP</label>
+                    <span id="target-phone" class="text-xs text-sky-400"></span>
+                </div>
+                <input type="text" id="otp-input" maxlength="6" placeholder="123456" required
+                       class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-center text-xl font-mono tracking-widest text-white focus:outline-none focus:border-sky-500 transition">
+            </div>
+
+            <button type="submit" id="verify-otp-btn" 
+                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-lg transition duration-200 disabled:opacity-50">
+                OTP Verify Karein
+            </button>
+
+            <div class="flex justify-between items-center text-xs text-slate-400 mt-2">
+                <button type="button" id="resend-btn" disabled class="hover:underline disabled:text-slate-600">
+                    Resend OTP
+                </button>
+                <span id="timer-text">00:30</span>
+            </div>
+        </form>
     </div>
 
     <script>
-        // CONFIGURATION: Apne Backend API URL ya Gateway Endpoint se replace karein
-        const API_BASE_URL = "https://your-domain.com/api"; 
+        // Backend Server URL
+        const BACKEND_URL = "http://localhost:5000/api";
 
-        const mobileStep = document.getElementById('step-mobile');
-        const otpStep = document.getElementById('step-otp');
-        const mobileForm = document.getElementById('mobile-form');
+        const phoneForm = document.getElementById('phone-form');
         const otpForm = document.getElementById('otp-form');
-        const statusMsg = document.getElementById('status-message');
+        const phoneInput = document.getElementById('phone-input');
+        const otpInput = document.getElementById('otp-input');
         const sendBtn = document.getElementById('send-otp-btn');
         const verifyBtn = document.getElementById('verify-otp-btn');
+        const resendBtn = document.getElementById('resend-btn');
+        const alertBox = document.getElementById('alert-box');
+        const targetPhoneLabel = document.getElementById('target-phone');
+        const timerText = document.getElementById('timer-text');
 
-        let userPhone = '';
+        let fullPhoneNumber = '';
+        let timerInterval = null;
 
-        // Helper function for messages
-        function showMessage(msg, isError = false) {
-            statusMsg.innerText = msg;
-            statusMsg.className = `status-msg ${isError ? 'error' : 'success'}`;
+        function showAlert(message, type = 'error') {
+            alertBox.innerText = message;
+            alertBox.classList.remove('hidden', 'bg-red-500/10', 'text-red-400', 'bg-emerald-500/10', 'text-emerald-400', 'border-red-500/20', 'border-emerald-500/20');
+            
+            if (type === 'error') {
+                alertBox.classList.add('bg-red-500/10', 'text-red-400', 'border', 'border-red-500/20');
+            } else {
+                alertBox.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/20');
+            }
         }
 
-        // Send OTP API Call
-        mobileForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            userPhone = document.getElementById('phone').value.trim();
+        function startTimer(seconds = 30) {
+            clearInterval(timerInterval);
+            let left = seconds;
+            resendBtn.disabled = true;
 
-            if (!userPhone) {
-                showMessage("Kripya sahi mobile number daalein.", true);
+            timerInterval = setInterval(() => {
+                left--;
+                timerText.innerText = `00:${left < 10 ? '0' : ''}${left}`;
+                if (left <= 0) {
+                    clearInterval(timerInterval);
+                    timerText.innerText = '';
+                    resendBtn.disabled = false;
+                }
+            }, 1000);
+        }
+
+        // Send OTP Action
+        phoneForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const rawPhone = phoneInput.value.trim();
+
+            if (rawPhone.length !== 10) {
+                showAlert('Kripya 10-digit ka valid mobile number likhein.');
                 return;
             }
 
+            fullPhoneNumber = `+91${rawPhone}`;
             sendBtn.disabled = true;
-            sendBtn.innerText = "Bhej rahe hain...";
-            showMessage("");
+            sendBtn.innerText = 'Bhej rahe hain...';
 
             try {
-                /* 
-                  BACKEND INTEGRATION:
-                  Apne actual API endpoint par POST request bhejein.
-                */
-                const response = await fetch(`${API_BASE_URL}/send-otp`, {
+                const response = await fetch(`${BACKEND_URL}/send-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: userPhone })
+                    body: JSON.stringify({ phone: fullPhoneNumber })
                 });
 
                 const data = await response.json();
 
-                if (response.ok && data.success) {
-                    showMessage("OTP safaltapoorvak bhej diya gaya!");
-                    mobileStep.classList.add('hidden');
-                    otpStep.classList.remove('hidden');
-                    document.getElementById('otp-sent-to').innerText = `OTP sent to ${userPhone}`;
+                if (response.ok) {
+                    showAlert('OTP aapke mobile number par bhej diya gaya h!', 'success');
+                    phoneForm.classList.add('hidden');
+                    otpForm.classList.remove('hidden');
+                    targetPhoneLabel.innerText = fullPhoneNumber;
+                    startTimer(30);
                 } else {
-                    throw new Error(data.message || "OTP bhejne me samasya aayi.");
+                    throw new Error(data.message || 'OTP bhejne me samasya aayi.');
                 }
-
             } catch (err) {
-                // Fallback for Demo / Direct Client Logic
-                console.error("API Error:", err);
-                showMessage(err.message || "Server Error: Code me API URL update karein.", true);
+                showAlert(err.message || 'Server error! Check karein ki Backend server live hai ya nahi.');
             } finally {
                 sendBtn.disabled = false;
-                sendBtn.innerText = "OTP Bhejein";
+                sendBtn.innerText = 'OTP Bhejein';
             }
         });
 
-        // Verify OTP API Call
+        // Verify OTP Action
         otpForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const otpCode = document.getElementById('otp').value.trim();
+            const otpVal = otpInput.value.trim();
 
-            if (otpCode.length < 4) {
-                showMessage("Sahi OTP code daalein.", true);
+            if (otpVal.length !== 6) {
+                showAlert('6-digit ka valid OTP daalein.');
                 return;
             }
 
             verifyBtn.disabled = true;
-            verifyBtn.innerText = "Checking...";
-            showMessage("");
+            verifyBtn.innerText = 'Verify kar rahe hain...';
 
             try {
-                const response = await fetch(`${API_BASE_URL}/verify-otp`, {
+                const response = await fetch(`${BACKEND_URL}/verify-otp`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: userPhone, otp: otpCode })
+                    body: JSON.stringify({ phone: fullPhoneNumber, otp: otpVal })
                 });
 
                 const data = await response.json();
 
-                if (response.ok && data.success) {
-                    showMessage("Login Successful! Redirecting...");
+                if (response.ok) {
+                    showAlert('Login Safal Hua! Dashboard par redirect ho rahe hain...', 'success');
                     setTimeout(() => {
-                        window.location.href = "/dashboard"; // Sahi page path daalein
+                        window.location.href = '/dashboard.html';
                     }, 1500);
                 } else {
-                    throw new Error(data.message || "Incorrect OTP");
+                    throw new Error(data.message || 'Galat OTP daala hai.');
                 }
-
             } catch (err) {
-                console.error("Verification Error:", err);
-                showMessage(err.message || "Invalid OTP, dobara try karein.", true);
+                showAlert(err.message || 'Verification fail ho gaya.');
             } finally {
                 verifyBtn.disabled = false;
-                verifyBtn.innerText = "Verify & Login";
+                verifyBtn.innerText = 'OTP Verify Karein';
             }
+        });
+
+        // Resend OTP Action
+        resendBtn.addEventListener('click', () => {
+            phoneForm.dispatchEvent(new Event('submit'));
         });
     </script>
 </body>
