@@ -2,22 +2,20 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go Traders | StockGro Gamified Experience</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Go Traders | AI Social Terminal (Landscape Mobile)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --sg-purple: #6c5ce7;
-            --sg-purple-dark: #5b4bc4;
-            --sg-bg: #0b0e17;
-            --sg-card: #151a26;
-            --sg-card-inner: #1c2333;
-            --sg-green: #00e676;
-            --sg-red: #ff3d00;
-            --sg-border: #232d42;
-            --sg-text: #ffffff;
-            --sg-subtext: #94a3b8;
+            --bg-dark: #080b11;
+            --panel-bg: #121722;
+            --panel-border: #1e2638;
+            --accent-green: #00e676;
+            --accent-red: #ff3d00;
+            --ai-purple: #7c4dff;
+            --text-main: #ffffff;
+            --text-sub: #94a3b8;
         }
 
         * {
@@ -29,547 +27,512 @@
         }
 
         body {
-            background-color: var(--sg-bg);
-            color: var(--sg-text);
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        /* App Mobile Wrapper Container */
-        .app-frame {
-            width: 100%;
-            max-width: 480px;
-            background-color: var(--sg-bg);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            box-shadow: 0 0 40px rgba(0,0,0,0.8);
-            border-left: 1px solid var(--sg-border);
-            border-right: 1px solid var(--sg-border);
-            padding-bottom: 75px;
-        }
-
-        /* Top Header */
-        .app-header {
-            padding: 16px 20px;
-            background: var(--sg-card);
-            border-bottom: 1px solid var(--sg-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--sg-purple), #a29bfe);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
             font-size: 14px;
         }
 
-        .cash-badge {
-            background: rgba(0, 230, 118, 0.12);
-            border: 1px solid rgba(0, 230, 118, 0.3);
-            color: var(--sg-green);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 13px;
-        }
-
-        /* Main Feed Body */
-        .feed-container {
-            padding: 16px;
+        /* Rotate Screen Overlay (Portrait Warning) */
+        #rotate-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #080b11;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
         }
 
-        /* StockGro League Banner Card */
-        .league-card {
-            background: linear-gradient(135deg, #2b1a6e, #151a26);
-            border: 1px solid var(--sg-purple);
-            border-radius: 18px;
-            padding: 18px;
-            position: relative;
-            overflow: hidden;
+        .phone-icon {
+            font-size: 50px;
+            animation: rotatePhone 2s infinite ease-in-out;
+            margin-bottom: 15px;
         }
 
-        .league-card::after {
-            content: 'LIVE';
-            position: absolute;
-            top: 14px;
-            right: 14px;
-            background: var(--sg-red);
-            font-size: 10px;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 6px;
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-90deg); }
+            100% { transform: rotate(-90deg); }
         }
 
-        .league-title {
-            font-size: 18px;
-            font-weight: 800;
-            margin-bottom: 4px;
+        /* Hide app in portrait, show overlay */
+        @media screen and (orientation: portrait) {
+            #app-container { display: none !important; }
+            #rotate-overlay { display: flex !important; }
         }
 
-        .league-pool {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--sg-green);
-            margin: 8px 0;
+        /* Hide overlay in landscape, show app */
+        @media screen and (orientation: landscape) {
+            #rotate-overlay { display: none !important; }
+            #app-container { display: flex !important; }
         }
 
-        /* Category Tabs */
-        .tab-scroll {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-        }
-
-        .tab-chip {
-            background: var(--sg-card);
-            border: 1px solid var(--sg-border);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--sg-subtext);
-            white-space: nowrap;
-            cursor: pointer;
-        }
-
-        .tab-chip.active {
-            background: var(--sg-purple);
-            color: #fff;
-            border-color: var(--sg-purple);
-        }
-
-        /* Stock Cards List (StockGro Style Progress Cards) */
-        .stock-card {
-            background: var(--sg-card);
-            border: 1px solid var(--sg-border);
-            border-radius: 16px;
-            padding: 16px;
+        /* Main App Grid (Landscape Mobile Optimized) */
+        #app-container {
+            width: 100vw;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            cursor: pointer;
-            transition: 0.2s;
         }
 
-        .stock-card:active {
-            transform: scale(0.98);
-        }
-
-        .stock-top {
+        /* Top Mini Header */
+        .header {
+            height: 42px;
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--panel-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0 15px;
+            flex-shrink: 0;
         }
 
-        .stock-identity {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .stock-logo {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            background: var(--sg-card-inner);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .brand {
             font-weight: 800;
             font-size: 16px;
-            color: var(--sg-purple);
-            border: 1px solid var(--sg-border);
+            color: var(--accent-green);
         }
 
-        .stock-name {
-            font-size: 15px;
+        .wallet-strip {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
             font-weight: 700;
         }
 
-        .stock-cat {
-            font-size: 11px;
-            color: var(--sg-subtext);
-        }
-
-        .stock-price {
-            font-size: 16px;
-            font-weight: 800;
-            text-align: right;
-        }
-
-        .stock-badge {
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 6px;
-            margin-top: 2px;
-            display: inline-block;
-        }
-
-        .badge-green { background: rgba(0, 230, 118, 0.15); color: var(--sg-green); }
-        .badge-red { background: rgba(255, 61, 0, 0.15); color: var(--sg-red); }
-
-        /* Progress Bar representing Volume/Trend */
-        .trend-bar-bg {
-            height: 6px;
-            background: var(--sg-card-inner);
-            border-radius: 3px;
-            overflow: hidden;
-            width: 100%;
-        }
-
-        .trend-bar-fill {
-            height: 100%;
-            border-radius: 3px;
-        }
-
-        /* Modal Buy/Sell Drawer (StockGro Sheet Style) */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: flex-end;
-            z-index: 200;
-        }
-
-        .bottom-sheet {
-            background: var(--sg-card);
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
-            padding: 24px;
-            width: 100%;
-            max-width: 480px;
-            border: 1px solid var(--sg-border);
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-
-        .sheet-handle {
-            width: 40px;
-            height: 4px;
-            background: var(--sg-subtext);
-            border-radius: 2px;
-            margin: 0 auto 20px auto;
-            opacity: 0.4;
-        }
-
-        .action-btns {
+        /* 2-Column Split: LEFT Status/Chart | RIGHT Trading Panel */
+        .main-split {
+            flex: 1;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 20px;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 1px;
+            background: var(--panel-border);
+            overflow: hidden;
         }
 
-        .btn-act {
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 15px;
-            cursor: pointer;
-            color: #fff;
-        }
-
-        .btn-buy-act { background: var(--sg-green); color: #000; }
-        .btn-sell-act { background: var(--sg-red); }
-
-        /* Bottom App Navigation Bar */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            max-width: 480px;
-            height: 65px;
-            background: var(--sg-card);
-            border-top: 1px solid var(--sg-border);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 100;
-        }
-
-        .nav-item {
+        .left-side, .right-side {
+            background: var(--bg-dark);
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            font-size: 10px;
+            padding: 8px;
+            gap: 8px;
+            overflow-y: auto;
+        }
+
+        /* Ticker Tape */
+        .ticker-bar {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .ticker-text {
+            display: inline-block;
+            animation: ticker 15s linear infinite;
+        }
+
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* AI Brain Signal Box */
+        .ai-box {
+            background: rgba(124, 77, 255, 0.12);
+            border: 1px solid var(--ai-purple);
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+
+        .ai-title {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--ai-purple);
+            margin-bottom: 4px;
+        }
+
+        /* Chart Canvas Container */
+        .chart-box {
+            flex: 1;
+            min-height: 140px;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            padding: 6px;
+            position: relative;
+        }
+
+        /* Leaderboard & Watchlist Tabs */
+        .tabs-header {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 4px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-sub);
             font-weight: 700;
-            color: var(--sg-subtext);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+
+        .tab-btn.active {
+            color: #fff;
+            border-bottom: 2px solid var(--accent-green);
+        }
+
+        /* Stock Cards / Traders Items */
+        .item-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
             cursor: pointer;
         }
 
-        .nav-item.active {
-            color: var(--sg-purple);
+        .item-card.active {
+            border-color: var(--accent-green);
         }
 
-        .nav-icon {
-            font-size: 18px;
+        /* Action Trade Drawer (RIGHT SIDE) */
+        .trade-control {
+            background: var(--panel-bg);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .qty-input {
+            width: 100%;
+            background: var(--bg-dark);
+            border: 1px solid var(--panel-border);
+            padding: 8px;
+            border-radius: 6px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn-action {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 15px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .btn-buy { background: var(--accent-green); color: #000; }
+        .btn-sell { background: var(--accent-red); }
+
+        /* DOM Order Depth Mini */
+        .dom-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            padding: 2px 0;
+            border-bottom: 1px dashed var(--panel-border);
+        }
+
+        .text-green { color: var(--accent-green); }
+        .text-red { color: var(--accent-red); }
+
+        /* Toast Popup */
+        #toast {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--ai-purple);
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            display: none;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
 
-    <!-- Main Mobile Frame -->
-    <div class="app-frame">
+    <!-- PORTRAIT ORIENTATION WARNING OVERLAY -->
+    <div id="rotate-overlay">
+        <div class="phone-icon">📱</div>
+        <h2>Please Rotate Your Phone</h2>
+        <p style="color: var(--text-sub); margin-top: 8px; font-size: 13px;">
+            Go Traders AI Terminal landscape mode me optimized hai. Behtar view ke liye phone ko sideways ghumaaein.
+        </p>
+    </div>
+
+    <!-- MAIN LANDSCAPE TERMINAL -->
+    <div id="app-container">
         
-        <!-- Header -->
-        <div class="app-header">
-            <div class="user-profile">
-                <div class="avatar">GT</div>
-                <div>
-                    <div style="font-size: 14px; font-weight: 800;">Go Traders</div>
-                    <div style="font-size: 10px; color: var(--sg-subtext);">Pro League Player</div>
-                </div>
+        <!-- Top Bar -->
+        <div class="header">
+            <div class="brand">Go Traders AI</div>
+            <div class="wallet-strip">
+                <div>Cash: <span id="val-cash" class="text-green">₹1,00,000</span></div>
+                <div>PnL: <span id="val-pnl" class="text-green">₹0.00</span></div>
             </div>
-            <div class="cash-badge" id="user-cash">₹1,00,000</div>
         </div>
 
-        <!-- Feed Body -->
-        <div class="feed-container">
+        <!-- Split Main Body -->
+        <div class="main-split">
             
-            <!-- StockGro Tournament League Banner -->
-            <div class="league-card">
-                <div class="league-title">🔥 Mega League #2026</div>
-                <div style="font-size: 12px; color: var(--sg-subtext);">Virtual Practice Pool</div>
-                <div class="league-pool">₹10,00,000 Prize Pool</div>
-                <button style="background: var(--sg-purple); color: #fff; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer;">JOINED</button>
+            <!-- LEFT SIDE: STATUS, TICKER, CHART & AI SIGNAL -->
+            <div class="left-side">
+                
+                <!-- Live Social Ticker -->
+                <div class="ticker-bar">
+                    <div class="ticker-text" id="ticker-feed">
+                        🔥 Rahul V. bought 50 Qty RELIANCE @ ₹2,450 | ⚡ AI Stoxo Signal: STRONG BUY
+                    </div>
+                </div>
+
+                <!-- AI Brain Recommendations -->
+                <div class="ai-box">
+                    <div class="ai-title">
+                        <span>🤖 AI STOXO BRAIN V2.0</span>
+                        <span id="ai-signal-type" class="text-green">STRONG BUY (88%)</span>
+                    </div>
+                    <div id="ai-desc" style="font-size: 10px; color: var(--text-sub);">
+                        Bullish momentum detected on 5M RSI. Trend continuation likely.
+                    </div>
+                </div>
+
+                <!-- Zoomed Live Chart -->
+                <div class="chart-box">
+                    <canvas id="landscapeChart"></canvas>
+                </div>
+
             </div>
 
-            <!-- Categories -->
-            <div class="tab-scroll">
-                <div class="tab-chip active">All Stocks</div>
-                <div class="tab-chip">Top Gainers</div>
-                <div class="tab-chip">Top Losers</div>
-                <div class="tab-chip">Indices</div>
+            <!-- RIGHT SIDE: TRADE ACTIONS, LEADERBOARD & BUY/SELL -->
+            <div class="right-side">
+                
+                <!-- Navigation Tabs -->
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="switchTab('watch')">Markets</button>
+                    <button class="tab-btn" onclick="switchTab('traders')">Top Traders</button>
+                </div>
+
+                <!-- Stock Watchlist Feed -->
+                <div id="watch-section" style="display: flex; flex-direction: column; gap: 6px;">
+                    <!-- Dynamic Watchlist Items -->
+                </div>
+
+                <!-- Leaderboard Section (Hidden by Default) -->
+                <div id="traders-section" style="display: none; flex-direction: column; gap: 6px;">
+                    <div class="item-card">
+                        <div><b>Vikram S.</b> <span style="font-size:10px; color:var(--text-sub);">(82% Win)</span></div>
+                        <button style="background:var(--ai-purple); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700;" onclick="copyTrade('Vikram S.')">COPY</button>
+                    </div>
+                    <div class="item-card">
+                        <div><b>Ananya R.</b> <span style="font-size:10px; color:var(--text-sub);">(78% Win)</span></div>
+                        <button style="background:var(--ai-purple); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700;" onclick="copyTrade('Ananya R.')">COPY</button>
+                    </div>
+                </div>
+
+                <!-- Order Panel & Buy/Sell Controls -->
+                <div class="trade-control">
+                    <div style="display: flex; justify-content: space-between; font-weight: 700;">
+                        <span id="selected-title">NIFTY 50</span>
+                        <span id="selected-price" class="text-green">₹18,500.00</span>
+                    </div>
+
+                    <div>
+                        <span style="font-size: 10px; color: var(--text-sub);">Quantity</span>
+                        <input type="number" class="qty-input" id="trade-qty" value="10" min="1">
+                    </div>
+
+                    <div class="btn-grid">
+                        <button class="btn-action btn-buy" onclick="placeTrade('BUY')">BUY</button>
+                        <button class="btn-action btn-sell" onclick="placeTrade('SELL')">SELL</button>
+                    </div>
+
+                    <!-- Mini DOM Depth -->
+                    <div style="margin-top: 4px;">
+                        <div class="dom-row"><span class="text-red">Ask: ₹18,501.00</span> <span>Qty: 120</span></div>
+                        <div class="dom-row"><span class="text-green">Bid: ₹18,499.00</span> <span>Qty: 85</span></div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Stock List (Dynamic StockGro Style Cards) -->
-            <div id="stock-cards-list" style="display: flex; flex-direction: column; gap: 12px;">
-                <!-- Dynamically rendered -->
-            </div>
-
-        </div>
-
-        <!-- Bottom App Navigation Bar -->
-        <div class="bottom-nav">
-            <div class="nav-item active">
-                <span class="nav-icon">📊</span>
-                <span>Markets</span>
-            </div>
-            <div class="nav-item" onclick="alert('Leagues Active: Pro League #2026')">
-                <span class="nav-icon">🏆</span>
-                <span>Leagues</span>
-            </div>
-            <div class="nav-item" onclick="showPositionsSheet()">
-                <span class="nav-icon">💼</span>
-                <span>Portfolio</span>
-            </div>
-            <div class="nav-item" onclick="alert('Profile: Go Traders Virtual Trader')">
-                <span class="nav-icon">👤</span>
-                <span>Profile</span>
-            </div>
         </div>
 
     </div>
 
-    <!-- Trade Execution Sheet Modal -->
-    <div class="modal-overlay" id="trade-modal" onclick="closeSheet(event)">
-        <div class="bottom-sheet" onclick="event.stopPropagation()">
-            <div class="sheet-handle"></div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h2 id="modal-stock-title" style="font-size: 20px; font-weight: 800;">RELIANCE</h2>
-                    <span id="modal-stock-cat" style="font-size: 12px; color: var(--sg-subtext);">EQUITY</span>
-                </div>
-                <div style="text-align: right;">
-                    <div id="modal-stock-price" style="font-size: 20px; font-weight: 800;">₹2,450.00</div>
-                </div>
-            </div>
-
-            <!-- Chart -->
-            <div style="height: 120px; margin: 15px 0;">
-                <canvas id="modalChart"></canvas>
-            </div>
-
-            <div style="margin-bottom: 12px;">
-                <label style="font-size: 12px; color: var(--sg-subtext); display: block; margin-bottom: 6px;">Quantity</label>
-                <input type="number" id="trade-qty" value="10" min="1" style="width: 100%; background: var(--sg-card-inner); border: 1px solid var(--sg-border); padding: 12px; border-radius: 10px; color: #fff; font-weight: 700; font-size: 16px; outline: none;">
-            </div>
-
-            <div class="action-btns">
-                <button class="btn-act btn-buy-act" onclick="placeTrade('BUY')">BUY</button>
-                <button class="btn-act btn-sell-act" onclick="placeTrade('SELL')">SELL</button>
-            </div>
-        </div>
-    </div>
+    <div id="toast">Order Executed</div>
 
     <script>
-        // System Data
-        let userCash = 100000;
+        // Data State
+        let virtualCash = 100000;
         let stocks = {
-            'RELIANCE': { price: 2450.00, change: 1.85, category: 'NIFTY 50', volume: 85 },
-            'TATA MOTORS': { price: 620.50, change: -0.90, category: 'AUTOMOBILE', volume: 45 },
-            'HDFC BANK': { price: 1540.00, change: 0.45, category: 'BANKING', volume: 60 },
-            'INFOSYS': { price: 1420.00, change: 2.15, category: 'IT SECTOR', volume: 90 },
-            'NIFTY 50': { price: 18500.00, change: 0.65, category: 'INDEX', volume: 75 }
+            'NIFTY 50': { price: 18500.00, change: +0.65 },
+            'BANKNIFTY': { price: 43200.00, change: -0.30 },
+            'RELIANCE': { price: 2450.00, change: +1.20 },
+            'TATA MOTORS': { price: 620.00, change: +2.10 }
         };
-
-        let selectedStockKey = 'RELIANCE';
+        let activeSymbol = 'NIFTY 50';
         let positions = [];
 
-        // Chart.js Setup
-        const ctx = document.getElementById('modalChart').getContext('2d');
-        const modalChart = new Chart(ctx, {
+        // Chart Setup
+        const ctx = document.getElementById('landscapeChart').getContext('2d');
+        const chart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['1', '2', '3', '4', '5'],
                 datasets: [{
-                    data: [2420, 2435, 2425, 2440, 2450],
+                    data: [18450, 18470, 18460, 18490, 18500],
                     borderColor: '#00e676',
-                    borderWidth: 3,
-                    tension: 0.4,
-                    pointRadius: 0
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    fill: true,
+                    backgroundColor: 'rgba(0, 230, 118, 0.05)'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { x: { display: false }, y: { display: false } }
+                scales: {
+                    x: { grid: { color: '#1e2638' }, ticks: { color: '#94a3b8', font: { size: 9 } } },
+                    y: { grid: { color: '#1e2638' }, ticks: { color: '#94a3b8', font: { size: 9 } } }
+                }
             }
         });
 
-        // Render Stock Cards (StockGro Feed Style)
-        function renderStockCards() {
-            const container = document.getElementById('stock-cards-list');
-            container.innerHTML = '';
-
+        // Render Stock List
+        function renderStocks() {
+            const box = document.getElementById('watch-section');
+            box.innerHTML = '';
             for (let key in stocks) {
-                let item = stocks[key];
-                let isUp = item.change >= 0;
-                let card = document.createElement('div');
-                card.className = 'stock-card';
-                card.onclick = () => openTradeSheet(key);
-
-                card.innerHTML = `
-                    <div class="stock-top">
-                        <div class="stock-identity">
-                            <div class="stock-logo">${key.charAt(0)}</div>
-                            <div>
-                                <div class="stock-name">${key}</div>
-                                <div class="stock-cat">${item.category}</div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="stock-price">₹${item.price.toFixed(2)}</div>
-                            <div class="stock-badge ${isUp ? 'badge-green' : 'badge-red'}" style="float: right;">
-                                ${isUp ? '▲ +' : '▼ '}${item.change.toFixed(2)}%
-                            </div>
-                        </div>
-                    </div>
-                    <div class="trend-bar-bg">
-                        <div class="trend-bar-fill" style="width: ${item.volume}%; background: ${isUp ? 'var(--sg-green)' : 'var(--sg-red)'};"></div>
+                let s = stocks[key];
+                let isUp = s.change >= 0;
+                let div = document.createElement('div');
+                div.className = `item-card ${key === activeSymbol ? 'active' : ''}`;
+                div.onclick = () => selectStock(key);
+                div.innerHTML = `
+                    <div><b>${key}</b></div>
+                    <div style="text-align:right;">
+                        <div>₹${s.price.toFixed(2)}</div>
+                        <div style="font-size:10px;" class="${isUp ? 'text-green' : 'text-red'}">${isUp ? '+' : ''}${s.change.toFixed(2)}%</div>
                     </div>
                 `;
-                container.appendChild(card);
+                box.appendChild(div);
             }
         }
 
-        function openTradeSheet(key) {
-            selectedStockKey = key;
-            document.getElementById('modal-stock-title').innerText = key;
-            document.getElementById('modal-stock-cat').innerText = stocks[key].category;
-            document.getElementById('modal-stock-price').innerText = '₹' + stocks[key].price.toFixed(2);
-            document.getElementById('trade-modal').style.display = 'flex';
-
-            modalChart.data.datasets[0].data = Array.from({length: 5}, () => stocks[key].price + (Math.random() - 0.5) * 10);
-            modalChart.data.datasets[0].borderColor = stocks[key].change >= 0 ? '#00e676' : '#ff3d00';
-            modalChart.update();
+        function selectStock(key) {
+            activeSymbol = key;
+            document.getElementById('selected-title').innerText = key;
+            document.getElementById('selected-price').innerText = '₹' + stocks[key].price.toFixed(2);
+            renderStocks();
         }
 
-        function closeSheet(e) {
-            document.getElementById('trade-modal').style.display = 'none';
-        }
-
-        // Live Market Simulation Engine
+        // Live Market Engine
         setInterval(() => {
             for (let key in stocks) {
-                let shift = (Math.random() - 0.49) * 3;
-                stocks[key].price = Math.max(1, stocks[key].price + shift);
+                stocks[key].price += (Math.random() - 0.49) * 3;
             }
 
-            if (document.getElementById('trade-modal').style.display === 'flex') {
-                document.getElementById('modal-stock-price').innerText = '₹' + stocks[selectedStockKey].price.toFixed(2);
-            }
+            let p = stocks[activeSymbol].price;
+            document.getElementById('selected-price').innerText = '₹' + p.toFixed(2);
 
-            renderStockCards();
+            chart.data.datasets[0].data.push(p);
+            chart.data.datasets[0].data.shift();
+            chart.update();
+
+            renderStocks();
+            updatePnL();
         }, 1500);
 
-        // Trade Action
         function placeTrade(type) {
             let qty = parseInt(document.getElementById('trade-qty').value) || 0;
-            let currentPrice = stocks[selectedStockKey].price;
-            let total = qty * currentPrice;
+            let price = stocks[activeSymbol].price;
+            let total = qty * price;
 
-            if (type === 'BUY' && total > userCash) return alert('Virtual Cash Limit Exceeded!');
+            if (type === 'BUY' && total > virtualCash) return alert('Insufficient Balance!');
 
-            if (type === 'BUY') userCash -= total;
-            else userCash += total;
+            if (type === 'BUY') virtualCash -= total;
+            else virtualCash += total;
 
-            positions.push({
-                symbol: selectedStockKey,
-                type: type,
-                qty: qty,
-                price: currentPrice
-            });
-
-            document.getElementById('user-cash').innerText = '₹' + userCash.toLocaleString('en-IN', {maximumFractionDigits: 0});
-            alert(`${type} Order Successful for ${qty} shares of ${selectedStockKey}!`);
-            document.getElementById('trade-modal').style.display = 'none';
+            positions.push({ symbol: activeSymbol, type: type, qty: qty, price: price });
+            showToast(`${type} Order Executed for ${qty} Qty!`);
+            updatePnL();
         }
 
-        function showPositionsSheet() {
-            if (positions.length === 0) return alert('No active positions in Portfolio.');
-            let msg = "Portfolio Holdings:\n";
-            positions.forEach(p => {
-                msg += `${p.symbol} - ${p.type} ${p.qty} Qty @ ₹${p.price.toFixed(2)}\n`;
+        function copyTrade(name) {
+            placeTrade('BUY');
+            showToast(`Copy Trade Executed from ${name}!`);
+        }
+
+        function updatePnL() {
+            document.getElementById('val-cash').innerText = '₹' + virtualCash.toLocaleString('en-IN', {maximumFractionDigits:0});
+            let pnl = 0;
+            positions.forEach(pos => {
+                let curP = stocks[pos.symbol].price;
+                pnl += pos.type === 'BUY' ? (curP - pos.price) * pos.qty : (pos.price - curP) * pos.qty;
             });
-            alert(msg);
+            let pnlEl = document.getElementById('val-pnl');
+            pnlEl.innerText = '₹' + pnl.toFixed(2);
+            pnlEl.className = pnl >= 0 ? 'text-green' : 'text-red';
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (tab === 'watch') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('watch-section').style.display = 'flex';
+                document.getElementById('traders-section').style.display = 'none';
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('watch-section').style.display = 'none';
+                document.getElementById('traders-section').style.display = 'flex';
+            }
+        }
+
+        function showToast(msg) {
+            let t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2000);
         }
 
         // Init
-        renderStockCards();
+        renderStocks();
     </script>
 </body>
 </html>
