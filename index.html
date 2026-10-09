@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Go Traders | AI Social Terminal (Landscape Mobile)</title>
+    <title>Go Traders | Mobile OTP & AI Trading Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
@@ -35,13 +35,71 @@
             font-size: 14px;
         }
 
-        /* Rotate Screen Overlay (Portrait Warning) */
+        /* 1. LOGIN / OTP OVERLAY */
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--bg-dark);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 28px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .brand-logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent-green);
+            margin-bottom: 6px;
+        }
+
+        .input-box {
+            width: 100%;
+            background: var(--bg-dark);
+            border: 1px solid var(--panel-border);
+            padding: 12px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
+            margin: 10px 0;
+            outline: none;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: var(--accent-green);
+            color: #000;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* 2. ROTATE PHONE PROMPT OVERLAY */
         #rotate-overlay {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #080b11;
+            background: var(--bg-dark);
             z-index: 9999;
-            display: flex;
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -61,28 +119,26 @@
             100% { transform: rotate(-90deg); }
         }
 
-        /* Hide app in portrait, show overlay */
-        @media screen and (orientation: portrait) {
-            #app-container { display: none !important; }
+        /* Orientation rules (triggers after login) */
+        .logged-in @media screen and (orientation: portrait) {
             #rotate-overlay { display: flex !important; }
+            #app-container { display: none !important; }
         }
 
-        /* Hide overlay in landscape, show app */
-        @media screen and (orientation: landscape) {
+        .logged-in @media screen and (orientation: landscape) {
             #rotate-overlay { display: none !important; }
             #app-container { display: flex !important; }
         }
 
-        /* Main App Grid (Landscape Mobile Optimized) */
+        /* 3. RECTANGULAR LANDSCAPE DASHBOARD */
         #app-container {
             width: 100vw;
             height: 100vh;
-            display: flex;
+            display: none;
             flex-direction: column;
         }
 
-        /* Top Mini Header */
-        .header {
+        .header-bar {
             height: 42px;
             background: var(--panel-bg);
             border-bottom: 1px solid var(--panel-border);
@@ -93,30 +149,25 @@
             flex-shrink: 0;
         }
 
-        .brand {
-            font-weight: 800;
-            font-size: 16px;
-            color: var(--accent-green);
-        }
-
-        .wallet-strip {
-            display: flex;
-            gap: 15px;
-            font-size: 12px;
+        .profile-chip {
+            background: rgba(124, 77, 255, 0.15);
+            border: 1px solid var(--ai-purple);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
             font-weight: 700;
         }
 
-        /* 2-Column Split: LEFT Status/Chart | RIGHT Trading Panel */
         .main-split {
             flex: 1;
             display: grid;
             grid-template-columns: 1.2fr 1fr;
-            gap: 1px;
+            gap: 2px;
             background: var(--panel-border);
             overflow: hidden;
         }
 
-        .left-side, .right-side {
+        .left-col, .right-col {
             background: var(--bg-dark);
             display: flex;
             flex-direction: column;
@@ -125,8 +176,15 @@
             overflow-y: auto;
         }
 
-        /* Ticker Tape */
-        .ticker-bar {
+        /* Rectangular Card Components */
+        .rect-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 8px;
+        }
+
+        .ticker-rect {
             background: var(--panel-bg);
             border: 1px solid var(--panel-border);
             border-radius: 6px;
@@ -136,7 +194,7 @@
             overflow: hidden;
         }
 
-        .ticker-text {
+        .ticker-move {
             display: inline-block;
             animation: ticker 15s linear infinite;
         }
@@ -146,37 +204,27 @@
             100% { transform: translateX(-100%); }
         }
 
-        /* AI Brain Signal Box */
-        .ai-box {
+        .ai-rect {
             background: rgba(124, 77, 255, 0.12);
             border: 1px solid var(--ai-purple);
-            border-radius: 8px;
-            padding: 8px 10px;
+            border-radius: 6px;
+            padding: 8px;
         }
 
-        .ai-title {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            font-weight: 800;
-            color: var(--ai-purple);
-            margin-bottom: 4px;
-        }
-
-        /* Chart Canvas Container */
-        .chart-box {
+        .chart-rect {
             flex: 1;
-            min-height: 140px;
+            min-height: 130px;
             background: var(--panel-bg);
-            border-radius: 8px;
-            padding: 6px;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 4px;
             position: relative;
         }
 
-        /* Leaderboard & Watchlist Tabs */
-        .tabs-header {
+        /* Rectangular Action Controls */
+        .nav-tabs {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             border-bottom: 1px solid var(--panel-border);
             padding-bottom: 4px;
         }
@@ -186,7 +234,7 @@
             border: none;
             color: var(--text-sub);
             font-weight: 700;
-            font-size: 12px;
+            font-size: 11px;
             cursor: pointer;
             padding: 2px 6px;
         }
@@ -196,12 +244,11 @@
             border-bottom: 2px solid var(--accent-green);
         }
 
-        /* Stock Cards / Traders Items */
-        .item-card {
+        .item-rect {
             background: var(--panel-bg);
             border: 1px solid var(--panel-border);
-            border-radius: 6px;
-            padding: 8px;
+            border-radius: 4px;
+            padding: 6px 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -209,44 +256,36 @@
             cursor: pointer;
         }
 
-        .item-card.active {
+        .item-rect.active {
             border-color: var(--accent-green);
-        }
-
-        /* Action Trade Drawer (RIGHT SIDE) */
-        .trade-control {
-            background: var(--panel-bg);
-            border-radius: 8px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
         }
 
         .qty-input {
             width: 100%;
             background: var(--bg-dark);
             border: 1px solid var(--panel-border);
-            padding: 8px;
-            border-radius: 6px;
+            padding: 6px;
+            border-radius: 4px;
             color: #fff;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 13px;
             outline: none;
+            margin-top: 2px;
         }
 
         .btn-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
+            gap: 6px;
+            margin-top: 6px;
         }
 
-        .btn-action {
-            padding: 12px;
+        .btn-act {
+            padding: 10px;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             font-weight: 800;
-            font-size: 15px;
+            font-size: 14px;
             color: #fff;
             cursor: pointer;
         }
@@ -254,19 +293,9 @@
         .btn-buy { background: var(--accent-green); color: #000; }
         .btn-sell { background: var(--accent-red); }
 
-        /* DOM Order Depth Mini */
-        .dom-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px;
-            padding: 2px 0;
-            border-bottom: 1px dashed var(--panel-border);
-        }
-
         .text-green { color: var(--accent-green); }
         .text-red { color: var(--accent-red); }
 
-        /* Toast Popup */
         #toast {
             position: fixed;
             bottom: 10px;
@@ -283,120 +312,125 @@
         }
     </style>
 </head>
-<body>
+<body class="not-logged-in">
 
-    <!-- PORTRAIT ORIENTATION WARNING OVERLAY -->
+    <!-- STEP 1: MOBILE NUMBER & OTP LOGIN SCREEN -->
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="brand-logo">Go Traders</div>
+            <p style="color: var(--text-sub); font-size: 12px; margin-bottom: 15px;">Official AI League Terminal Login</p>
+            
+            <div id="step-phone">
+                <input type="tel" id="user-phone" class="input-box" placeholder="Mobile Number" maxlength="10">
+                <button class="btn-primary" onclick="sendOTP()">SEND OTP</button>
+            </div>
+
+            <div id="step-otp" style="display: none;">
+                <p style="color: var(--accent-green); font-size: 11px; margin-bottom: 6px;">OTP Sent to Mobile Number!</p>
+                <input type="number" id="user-otp" class="input-box" placeholder="4-Digit OTP (e.g. 1234)" maxlength="4">
+                <button class="btn-primary" onclick="verifyOTP()">VERIFY & START TRADING</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 2: ROTATION PROMPT OVERLAY -->
     <div id="rotate-overlay">
         <div class="phone-icon">📱</div>
-        <h2>Please Rotate Your Phone</h2>
-        <p style="color: var(--text-sub); margin-top: 8px; font-size: 13px;">
-            Go Traders AI Terminal landscape mode me optimized hai. Behtar view ke liye phone ko sideways ghumaaein.
+        <h2>Rotate Phone to Landscape</h2>
+        <p style="color: var(--text-sub); margin-top: 6px; font-size: 12px;">
+            Screen rotate karein taaki Rectangular Layout aur Zoomed-In Buttons active ho sakein.
         </p>
     </div>
 
-    <!-- MAIN LANDSCAPE TERMINAL -->
+    <!-- STEP 3: RECTANGULAR LANDSCAPE TRADING TERMINAL -->
     <div id="app-container">
-        
         <!-- Top Bar -->
-        <div class="header">
-            <div class="brand">Go Traders AI</div>
-            <div class="wallet-strip">
-                <div>Cash: <span id="val-cash" class="text-green">₹1,00,000</span></div>
-                <div>PnL: <span id="val-pnl" class="text-green">₹0.00</span></div>
+        <div class="header-bar">
+            <div style="font-weight: 800; color: var(--accent-green);">Go Traders AI</div>
+            <div class="profile-chip" id="profile-display">👤 +91 9876543210</div>
+            <div style="font-size: 11px; font-weight: 700;">
+                Cash: <span id="val-cash" class="text-green">₹1,00,000</span> | PnL: <span id="val-pnl" class="text-green">₹0.00</span>
             </div>
         </div>
 
-        <!-- Split Main Body -->
+        <!-- Main Split View -->
         <div class="main-split">
-            
-            <!-- LEFT SIDE: STATUS, TICKER, CHART & AI SIGNAL -->
-            <div class="left-side">
-                
-                <!-- Live Social Ticker -->
-                <div class="ticker-bar">
-                    <div class="ticker-text" id="ticker-feed">
-                        🔥 Rahul V. bought 50 Qty RELIANCE @ ₹2,450 | ⚡ AI Stoxo Signal: STRONG BUY
+            <!-- Left Side: Status, Ticker, AI Signals & Chart -->
+            <div class="left-col">
+                <div class="ticker-rect">
+                    <div class="ticker-move" id="ticker-feed">
+                        🔥 Rahul V. bought 50 Qty RELIANCE @ ₹2,450 | ⚡ AI Signal: STRONG BUY
                     </div>
                 </div>
 
-                <!-- AI Brain Recommendations -->
-                <div class="ai-box">
-                    <div class="ai-title">
+                <div class="ai-rect">
+                    <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--ai-purple);">
                         <span>🤖 AI STOXO BRAIN V2.0</span>
                         <span id="ai-signal-type" class="text-green">STRONG BUY (88%)</span>
                     </div>
-                    <div id="ai-desc" style="font-size: 10px; color: var(--text-sub);">
-                        Bullish momentum detected on 5M RSI. Trend continuation likely.
+                    <div style="font-size: 10px; color: var(--text-sub); margin-top: 2px;">
+                        Bullish breakouts detected on 5M timeframe for active leagues.
                     </div>
                 </div>
 
-                <!-- Zoomed Live Chart -->
-                <div class="chart-box">
-                    <canvas id="landscapeChart"></canvas>
+                <div class="chart-rect">
+                    <canvas id="rectChart"></canvas>
                 </div>
-
             </div>
 
-            <!-- RIGHT SIDE: TRADE ACTIONS, LEADERBOARD & BUY/SELL -->
-            <div class="right-side">
-                
-                <!-- Navigation Tabs -->
-                <div class="tabs-header">
+            <!-- Right Side: Watchlist, Leaderboard, Leagues & Buy/Sell -->
+            <div class="right-col">
+                <div class="nav-tabs">
                     <button class="tab-btn active" onclick="switchTab('watch')">Markets</button>
-                    <button class="tab-btn" onclick="switchTab('traders')">Top Traders</button>
+                    <button class="tab-btn" onclick="switchTab('leagues')">Active Leagues</button>
+                    <button class="tab-btn" onclick="switchTab('traders')">Pro Traders</button>
                 </div>
 
-                <!-- Stock Watchlist Feed -->
-                <div id="watch-section" style="display: flex; flex-direction: column; gap: 6px;">
-                    <!-- Dynamic Watchlist Items -->
+                <!-- Markets Section -->
+                <div id="watch-section" style="display: flex; flex-direction: column; gap: 4px;"></div>
+
+                <!-- Leagues Section -->
+                <div id="leagues-section" style="display: none; flex-direction: column; gap: 4px;">
+                    <div class="item-rect">
+                        <div><b>Mega Practice League #2026</b></div>
+                        <span class="text-green" style="font-weight:700;">₹10L Pool</span>
+                    </div>
                 </div>
 
-                <!-- Leaderboard Section (Hidden by Default) -->
-                <div id="traders-section" style="display: none; flex-direction: column; gap: 6px;">
-                    <div class="item-card">
+                <!-- Pro Traders Section -->
+                <div id="traders-section" style="display: none; flex-direction: column; gap: 4px;">
+                    <div class="item-rect">
                         <div><b>Vikram S.</b> <span style="font-size:10px; color:var(--text-sub);">(82% Win)</span></div>
-                        <button style="background:var(--ai-purple); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700;" onclick="copyTrade('Vikram S.')">COPY</button>
-                    </div>
-                    <div class="item-card">
-                        <div><b>Ananya R.</b> <span style="font-size:10px; color:var(--text-sub);">(78% Win)</span></div>
-                        <button style="background:var(--ai-purple); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700;" onclick="copyTrade('Ananya R.')">COPY</button>
+                        <button style="background:var(--ai-purple); color:#fff; border:none; padding:2px 6px; border-radius:3px; font-size:10px; font-weight:700;" onclick="copyTrade('Vikram S.')">COPY</button>
                     </div>
                 </div>
 
-                <!-- Order Panel & Buy/Sell Controls -->
-                <div class="trade-control">
+                <!-- Trade Execution Rectangular Card -->
+                <div class="rect-card">
                     <div style="display: flex; justify-content: space-between; font-weight: 700;">
                         <span id="selected-title">NIFTY 50</span>
                         <span id="selected-price" class="text-green">₹18,500.00</span>
                     </div>
 
-                    <div>
+                    <div style="margin-top: 4px;">
                         <span style="font-size: 10px; color: var(--text-sub);">Quantity</span>
                         <input type="number" class="qty-input" id="trade-qty" value="10" min="1">
                     </div>
 
                     <div class="btn-grid">
-                        <button class="btn-action btn-buy" onclick="placeTrade('BUY')">BUY</button>
-                        <button class="btn-action btn-sell" onclick="placeTrade('SELL')">SELL</button>
-                    </div>
-
-                    <!-- Mini DOM Depth -->
-                    <div style="margin-top: 4px;">
-                        <div class="dom-row"><span class="text-red">Ask: ₹18,501.00</span> <span>Qty: 120</span></div>
-                        <div class="dom-row"><span class="text-green">Bid: ₹18,499.00</span> <span>Qty: 85</span></div>
+                        <button class="btn-act btn-buy" onclick="placeTrade('BUY')">BUY</button>
+                        <button class="btn-act btn-sell" onclick="placeTrade('SELL')">SELL</button>
                     </div>
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
-    <div id="toast">Order Executed</div>
+    <div id="toast">Trade Executed</div>
 
     <script>
-        // Data State
+        // Data Engine State
+        let userPhoneNum = '';
         let virtualCash = 100000;
         let stocks = {
             'NIFTY 50': { price: 18500.00, change: +0.65 },
@@ -407,34 +441,73 @@
         let activeSymbol = 'NIFTY 50';
         let positions = [];
 
-        // Chart Setup
-        const ctx = document.getElementById('landscapeChart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['1', '2', '3', '4', '5'],
-                datasets: [{
-                    data: [18450, 18470, 18460, 18490, 18500],
-                    borderColor: '#00e676',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    pointRadius: 0,
-                    fill: true,
-                    backgroundColor: 'rgba(0, 230, 118, 0.05)'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { color: '#1e2638' }, ticks: { color: '#94a3b8', font: { size: 9 } } },
-                    y: { grid: { color: '#1e2638' }, ticks: { color: '#94a3b8', font: { size: 9 } } }
-                }
-            }
-        });
+        // OTP Auth Engine
+        function sendOTP() {
+            let phone = document.getElementById('user-phone').value;
+            if (phone.length < 10) return alert('Kripya 10-digit sahi mobile number daalein!');
+            userPhoneNum = phone;
+            document.getElementById('step-phone').style.display = 'none';
+            document.getElementById('step-otp').style.display = 'block';
+        }
 
-        // Render Stock List
+        function verifyOTP() {
+            let otp = document.getElementById('user-otp').value;
+            if (otp.length < 4) return alert('Kripya valid OTP daalein!');
+
+            document.getElementById('profile-display').innerText = `👤 +91 ${userPhoneNum}`;
+            document.getElementById('login-screen').style.display = 'none';
+            document.body.classList.remove('not-logged-in');
+            document.body.classList.add('logged-in');
+
+            checkOrientation();
+            initChart();
+            renderStocks();
+        }
+
+        // Orientation Checker
+        function checkOrientation() {
+            if (!document.body.classList.contains('logged-in')) return;
+            if (window.innerHeight > window.innerWidth) {
+                document.getElementById('rotate-overlay').style.display = 'flex';
+                document.getElementById('app-container').style.display = 'none';
+            } else {
+                document.getElementById('rotate-overlay').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+            }
+        }
+        window.addEventListener('resize', checkOrientation);
+
+        // Chart Setup
+        let chart;
+        function initChart() {
+            const ctx = document.getElementById('rectChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['1', '2', '3', '4', '5'],
+                    datasets: [{
+                        data: [18450, 18470, 18460, 18490, 18500],
+                        borderColor: '#00e676',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        fill: true,
+                        backgroundColor: 'rgba(0, 230, 118, 0.05)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#1e2638' }, ticks: { color: '#94a3b8', font: { size: 9 } } },
+                        y: { grid: { color: '#1e2638' }, ticks: { color: '#94a3b8', font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        // Render Stocks List
         function renderStocks() {
             const box = document.getElementById('watch-section');
             box.innerHTML = '';
@@ -442,7 +515,7 @@
                 let s = stocks[key];
                 let isUp = s.change >= 0;
                 let div = document.createElement('div');
-                div.className = `item-card ${key === activeSymbol ? 'active' : ''}`;
+                div.className = `item-rect ${key === activeSymbol ? 'active' : ''}`;
                 div.onclick = () => selectStock(key);
                 div.innerHTML = `
                     <div><b>${key}</b></div>
@@ -462,8 +535,10 @@
             renderStocks();
         }
 
-        // Live Market Engine
+        // Live Simulation Loop
         setInterval(() => {
+            if (!document.body.classList.contains('logged-in')) return;
+
             for (let key in stocks) {
                 stocks[key].price += (Math.random() - 0.49) * 3;
             }
@@ -471,9 +546,11 @@
             let p = stocks[activeSymbol].price;
             document.getElementById('selected-price').innerText = '₹' + p.toFixed(2);
 
-            chart.data.datasets[0].data.push(p);
-            chart.data.datasets[0].data.shift();
-            chart.update();
+            if (chart) {
+                chart.data.datasets[0].data.push(p);
+                chart.data.datasets[0].data.shift();
+                chart.update();
+            }
 
             renderStocks();
             updatePnL();
@@ -513,13 +590,18 @@
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('watch-section').style.display = 'none';
+            document.getElementById('leagues-section').style.display = 'none';
+            document.getElementById('traders-section').style.display = 'none';
+
             if (tab === 'watch') {
                 document.querySelectorAll('.tab-btn')[0].classList.add('active');
                 document.getElementById('watch-section').style.display = 'flex';
-                document.getElementById('traders-section').style.display = 'none';
-            } else {
+            } else if (tab === 'leagues') {
                 document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('watch-section').style.display = 'none';
+                document.getElementById('leagues-section').style.display = 'flex';
+            } else {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
                 document.getElementById('traders-section').style.display = 'flex';
             }
         }
@@ -530,9 +612,6 @@
             t.style.display = 'block';
             setTimeout(() => t.style.display = 'none', 2000);
         }
-
-        // Init
-        renderStocks();
     </script>
 </body>
 </html>
