@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Traders | Institutional Trading Terminal</title>
+    <!-- Lightweight Charts (TradingView Official Engine) -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --panel-bg: #121824;
+            --panel-header: #182030;
+            --border-color: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --green: #22c55e;
+            --green-glow: rgba(34, 197, 94, 0.15);
+            --red: #ef4444;
+            --red-glow: rgba(239, 68, 68, 0.15);
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 13px;
+        }
+
+        /* Top Bar */
+        .navbar {
+            height: 48px;
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: -0.5px;
+            color: #fff;
+        }
+
+        .brand-logo {
+            background: linear-gradient(135deg, #22c55e, #3b82f6);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .tag-demo {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .account-strip {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .stat-val {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        /* Workspace Grid */
+        .workspace {
+            display: grid;
+            grid-template-columns: 260px 1fr 300px;
+            grid-template-rows: 1fr 220px;
+            height: calc(100vh - 48px);
+            gap: 1px;
+            background-color: var(--border-color);
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-head {
+            height: 36px;
+            background-color: var(--panel-header);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Watchlist Panel */
+        .search-bar {
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-bar input {
+            width: 100%;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .watchlist-scroll {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .wl-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .wl-row:hover, .wl-row.active {
+            background-color: #1a2332;
+        }
+
+        .wl-symbol {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .wl-type {
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        /* Chart Center Panel */
+        .chart-controls {
+            height: 40px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 12px;
+        }
+
+        .sym-title-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-right: 12px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .timeframe-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .timeframe-btn.active, .timeframe-btn:hover {
+            color: #fff;
+            background-color: #1a2332;
+        }
+
+        #tvChart {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Order Panel (Right) */
+        .order-panel {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+
+        .tab-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: var(--bg-dark);
+            padding: 3px;
+            border-radius: 6px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 700;
+            cursor: pointer;
+            color: var(--text-secondary);
+            background: none;
+            transition: 0.2s;
+        }
+
+        .tab-btn.buy-tab.active { background: var(--green); color: #fff; }
+        .tab-btn.sell-tab.active { background: var(--red); color: #fff; }
+
+        .form-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .input-box {
+            width: 100%;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .input-box:focus { border-color: var(--accent); }
+
+        .leverage-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+        }
+
+        .lev-btn {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .lev-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        .action-submit {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #fff;
+            margin-top: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .action-submit.buy { background: var(--green); }
+        .action-submit.sell { background: var(--red); }
+
+        /* Order Book DOM Depth */
+        .dom-container {
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+            margin-top: auto;
+        }
+
+        .dom-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            padding: 2px 0;
+            position: relative;
+        }
+
+        .dom-bg {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            opacity: 0.15;
+            z-index: 1;
+        }
+
+        .dom-bg.ask { right: 0; background: var(--red); }
+        .dom-bg.bid { left: 0; background: var(--green); }
+
+        /* Bottom Positions Panel */
+        .bottom-panel {
+            grid-column: span 3;
+        }
+
+        .bottom-tabs {
+            display: flex;
+            gap: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 16px;
+            background-color: var(--panel-header);
+        }
+
+        .b-tab {
+            padding: 10px 0;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .b-tab.active {
+            color: #fff;
+        }
+
+        .b-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--accent);
+        }
+
+        .grid-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .grid-table th {
+            padding: 8px 16px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 11px;
+        }
+
+        .grid-table td {
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 12px;
+        }
+
+        .close-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .close-btn:hover {
+            background: var(--red);
+            color: #fff;
+        }
+
+        /* Utility */
+        .text-green { color: var(--green) !important; }
+        .text-red { color: var(--red) !important; }
+
+        /* Toast Popup */
+        #notification {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: var(--panel-bg);
+            border-left: 4px solid var(--accent);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 4px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 100;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <div class="navbar">
+        <div class="brand">
+            <div class="brand-logo">GT</div>
+            Go Traders
+            <span class="tag-demo">PAPER TERMINAL</span>
+        </div>
+
+        <div class="account-strip">
+            <div class="stat-box">
+                <span class="stat-label">Virtual Margin</span>
+                <span class="stat-val" id="val-equity">₹10,00,000.00</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Used Margin</span>
+                <span class="stat-val" id="val-used">₹0.00</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Unrealized P&L</span>
+                <span class="stat-val" id="val-pnl">₹0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Trading Dashboard -->
+    <div class="workspace">
+
+        <!-- Left Panel: Market Watchlist -->
+        <div class="panel">
+            <div class="panel-head">
+                Watchlist
+                <span id="market-status" class="text-green" style="font-size: 9px;">● LIVE TICKS</span>
+            </div>
+            <div class="search-bar">
+                <input type="text" placeholder="Search NIFTY, Stocks, Crypto..." onkeyup="filterWatchlist(this.value)">
+            </div>
+            <div class="watchlist-scroll" id="watchlist-box">
+                <!-- Dynamically generated -->
+            </div>
+        </div>
+
+        <!-- Center Panel: Professional TradingView Chart -->
+        <div class="panel">
+            <div class="chart-controls">
+                <div class="sym-title-bar">
+                    <span id="chart-sym-name" style="font-size: 15px; font-weight: 700; color: #fff;">NIFTY 50</span>
+                    <span id="chart-sym-price" class="text-green" style="font-size: 15px; font-weight: 700;">₹22,450.00</span>
+                </div>
+                <div>
+                    <button class="timeframe-btn active">1M</button>
+                    <button class="timeframe-btn">5M</button>
+                    <button class="timeframe-btn">15M</button>
+                    <button class="timeframe-btn">1H</button>
+                    <button class="timeframe-btn">1D</button>
+                </div>
+            </div>
+            <div id="tvChart"></div>
+        </div>
+
+        <!-- Right Panel: Order Entry & Market Depth -->
+        <div class="panel order-panel">
+            <div class="tab-selector">
+                <button class="tab-btn buy-tab active" onclick="setOrderSide('BUY')">BUY</button>
+                <button class="tab-btn sell-tab" onclick="setOrderSide('SELL')">SELL</button>
+            </div>
+
+            <div>
+                <span class="form-label">Order Type</span>
+                <select class="input-box" id="order-type">
+                    <option>Market Order</option>
+                    <option>Limit Order</option>
+                </select>
+            </div>
+
+            <div>
+                <span class="form-label">Quantity / Lots</span>
+                <input type="number" class="input-box" id="order-qty" value="50" min="1" oninput="calcMargin()">
+            </div>
+
+            <div>
+                <span class="form-label">Leverage Multiplier</span>
+                <div class="leverage-grid">
+                    <button class="lev-btn active" onclick="setLeverage(1, this)">1x</button>
+                    <button class="lev-btn" onclick="setLeverage(2, this)">2x</button>
+                    <button class="lev-btn" onclick="setLeverage(5, this)">5x</button>
+                    <button class="lev-btn" onclick="setLeverage(10, this)">10x</button>
+                </div>
+            </div>
+
+            <div>
+                <span class="form-label">Stop Loss (₹)</span>
+                <input type="number" class="input-box" id="order-sl" placeholder="Optional">
+            </div>
+
+            <div>
+                <span class="form-label">Target / Take Profit (₹)</span>
+                <input type="number" class="input-box" id="order-tp" placeholder="Optional">
+            </div>
+
+            <div style="background: var(--bg-dark); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+                <div style="display:flex; justify-shadow: space-between; font-size: 11px; color: var(--text-secondary);">
+                    <span>Margin Req:</span>
+                    <span id="margin-req-val" style="color: #fff; font-weight: 600;">₹0.00</span>
+                </div>
+            </div>
+
+            <button class="action-submit buy" id="submit-btn" onclick="executeOrder()">EXECUTE BUY ORDER</button>
+
+            <!-- DOM Depth -->
+            <div class="dom-container">
+                <span class="form-label" style="margin-bottom: 6px;">Market Depth (DOM)</span>
+                <div id="dom-box">
+                    <!-- Dynamic DOM Rows -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Panel: Positions & Portfolio -->
+        <div class="panel bottom-panel">
+            <div class="bottom-tabs">
+                <div class="b-tab active" onclick="switchBottomTab('pos')">Open Positions (<span id="pos-cnt">0</span>)</div>
+                <div class="b-tab" onclick="switchBottomTab('hist')">Order History</div>
+            </div>
+            <div style="flex: 1; overflow-y: auto;">
+                <table class="grid-table" id="table-positions">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Side</th>
+                            <th>Size</th>
+                            <th>Entry Price</th>
+                            <th>Market Price</th>
+                            <th>Leverage</th>
+                            <th>Unrealized P&L</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pos-tbody">
+                        <!-- Positions appended here -->
+                    </tbody>
+                </table>
+
+                <table class="grid-table" id="table-history" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Symbol</th>
+                            <th>Side</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th>Total Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hist-tbody">
+                        <!-- History appended here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <div idNotification id="notification">Trade Executed</div>
+
+    <script>
+        // System Global State
+        let accountBalance = 1000000;
+        let usedMargin = 0;
+        let selectedSide = 'BUY';
+        let currentLeverage = 1;
+        
+        let marketData = {
+            'NIFTY 50': { price: 22450.00, change: 0.85, category: 'INDEX' },
+            'BANKNIFTY': { price: 47800.00, change: -0.35, category: 'INDEX' },
+            'RELIANCE': { price: 2980.00, change: 1.45, category: 'EQUITY' },
+            'TATA MOTORS': { price: 985.00, change: 2.10, category: 'EQUITY' },
+            'BTC/INR': { price: 6250000.00, change: -1.20, category: 'CRYPTO' }
+        };
+        
+        let activeSymbol = 'NIFTY 50';
+        let positions = [];
+        let orderHistory = [];
+
+        // Initialize TradingView Lightweight Candlestick Chart Engine
+        const chartContainer = document.getElementById('tvChart');
+        const chart = LightweightCharts.createChart(chartContainer, {
+            layout: {
+                background: { color: '#121824' },
+                textColor: '#94a3b8',
+            },
+            grid: {
+                vertLines: { color: '#1e293b' },
+                horzLines: { color: '#1e293b' },
+            },
+            crosshair: {
+                mode: LightweightCharts.CrosshairMode.Normal,
+            },
+            rightPriceScale: {
+                borderColor: '#1e293b',
+            },
+            timeScale: {
+                borderColor: '#1e293b',
+                timeVisible: true,
+            },
+        });
+
+        const candleSeries = chart.addCandlestickSeries({
+            upColor: '#22c55e',
+            down
