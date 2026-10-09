@@ -3,203 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go Traders - Portal</title>
+    <title>Go Traders - Live Trading Portal</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 relative overflow-x-hidden">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between relative overflow-x-hidden">
 
     <!-- Background Decor -->
-    <div class="absolute -top-20 -left-20 w-72 h-72 bg-sky-600/20 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-20 -right-20 w-72 h-72 bg-emerald-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="fixed -top-24 -left-24 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="fixed -bottom-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-    <!-- MAIN CONTAINER -->
-    <main class="w-full max-w-md z-10">
-        
-        <!-- LOGIN CARD -->
-        <div id="auth-container" class="glass-card rounded-2xl p-8 shadow-2xl transition-all duration-300">
-            
-            <!-- Branding Header -->
-            <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center w-12 h-12 bg-sky-500/10 border border-sky-500/20 rounded-xl mb-3 text-sky-400 font-bold text-xl">
+    <!-- NAVBAR HEADER -->
+    <header class="w-full bg-slate-900/80 border-b border-slate-800 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-sky-500/10 border border-sky-500/30 rounded-xl flex items-center justify-center text-sky-400 font-black text-lg">
                     GT
                 </div>
-                <h1 class="text-2xl font-extrabold tracking-tight text-white">Go Traders</h1>
-                <p class="text-slate-400 text-xs mt-1">Apne account me login karein</p>
-            </div>
-
-            <!-- Status / Alert Box -->
-            <div id="alert-box" class="hidden mb-4 p-3 rounded-lg text-xs text-center border"></div>
-
-            <!-- STEP 1: Phone Form -->
-            <form id="phone-form" class="space-y-4">
                 <div>
-                    <label for="phone-input" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Mobile Number</label>
-                    <div class="flex">
-                        <span class="inline-flex items-center px-3.5 rounded-l-xl border border-r-0 border-slate-700 bg-slate-800 text-slate-300 text-sm font-semibold">+91</span>
-                        <input type="tel" id="phone-input" maxlength="10" placeholder="8510084212" required 
-                               class="w-full bg-slate-900/80 border border-slate-700 rounded-r-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-sky-500 transition">
-                    </div>
+                    <h1 class="text-lg font-black tracking-wide text-white">Go Traders</h1>
+                    <p class="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">● Market Live</p>
                 </div>
-
-                <button type="submit" id="send-otp-btn" 
-                        class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-3 rounded-xl transition-all duration-200 shadow-lg shadow-sky-500/20 disabled:opacity-50">
-                    OTP Bhejein
-                </button>
-            </form>
-
-            <!-- STEP 2: OTP Form (Initially Hidden) -->
-            <form id="otp-form" class="space-y-4 hidden">
-                <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <label for="otp-input" class="text-xs font-semibold text-slate-300 uppercase tracking-wider">6-Digit OTP</label>
-                        <span id="target-phone" class="text-xs text-sky-400 font-mono"></span>
-                    </div>
-                    <input type="text" id="otp-input" maxlength="6" placeholder="123456" required
-                           class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-3 text-center text-2xl font-mono tracking-widest text-white focus:outline-none focus:border-sky-500 transition">
-                </div>
-
-                <button type="submit" id="verify-otp-btn" 
-                        class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 disabled:opacity-50">
-                    Verify & Continue
-                </button>
-
-                <button type="button" id="change-num-btn" class="w-full text-xs text-slate-400 hover:text-slate-200 transition text-center">
-                    Number badlein
-                </button>
-            </form>
-        </div>
-
-        <!-- GO TRADERS DASHBOARD (Showed after success) -->
-        <div id="dashboard-container" class="hidden glass-card rounded-2xl p-6 shadow-2xl text-center space-y-4">
-            <div class="w-16 h-16 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-2xl">
-                ✓
             </div>
-            <h2 class="text-xl font-bold text-white">Go Traders Dashboard</h2>
-            <p class="text-slate-400 text-sm">Aapka login safaltapoorvak ho gaya h.</p>
             
-            <div class="bg-slate-900/50 p-4 rounded-xl text-left border border-slate-800 space-y-2">
-                <div class="text-xs text-slate-500">USER PROFILE</div>
-                <div class="text-sm font-semibold text-slate-200" id="user-display-phone">+91 8510084212</div>
-                <div class="text-xs text-emerald-400">Account Active</div>
+            <div class="flex items-center space-x-4">
+                <div class="hidden sm:block text-right">
+                    <span class="block text-[10px] text-slate-400 font-medium uppercase">Portfolio Balance</span>
+                    <span class="text-sm font-bold text-emerald-400">₹1,50,000.00</span>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-sky-400">
+                    GT
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD INTERFACE -->
+    <main class="max-w-7xl mx-auto px-4 py-6 w-full flex-grow z-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- LEFT PANEL: Market Watchlist & Chart -->
+        <section class="lg:col-span-2 space-y-6">
+            
+            <!-- Quick Ticker Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="glass-card p-4 rounded-xl">
+                    <span class="text-xs text-slate-400 block mb-1">NIFTY 50</span>
+                    <span class="text-base font-extrabold text-emerald-400">22,480.15</span>
+                    <span class="text-[10px] text-emerald-400 block mt-0.5">+124.30 (+0.56%)</span>
+                </div>
+                <div class="glass-card p-4 rounded-xl">
+                    <span class="text-xs text-slate-400 block mb-1">BANK NIFTY</span>
+                    <span class="text-base font-extrabold text-emerald-400">47,820.50</span>
+                    <span class="text-[10px] text-emerald-400 block mt-0.5">+310.20 (+0.65%)</span>
+                </div>
+                <div class="glass-card p-4 rounded-xl">
+                    <span class="text-xs text-slate-400 block mb-1">SENSEX</span>
+                    <span class="text-base font-extrabold text-emerald-400">74,110.80</span>
+                    <span class="text-[10px] text-emerald-400 block mt-0.5">+412.00 (+0.55%)</span>
+                </div>
+                <div class="glass-card p-4 rounded-xl">
+                    <span class="text-xs text-slate-400 block mb-1">INDIA VIX</span>
+                    <span class="text-base font-extrabold text-red-400">13.45</span>
+                    <span class="text-[10px] text-red-400 block mt-0.5">-0.35 (-2.54%)</span>
+                </div>
             </div>
 
-            <button id="logout-btn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 rounded-xl border border-slate-700 text-sm transition">
-                Logout Karein
-            </button>
-        </div>
+            <!-- Trading Chart Preview Box -->
+            <div class="glass-card p-6 rounded-2xl flex flex-col justify-between min-h-[320px]">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white">RELIANCE / NSE</h2>
+                        <p class="text-xs text-slate-400">Live Candle Chart</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <span class="text-xl font-bold text-emerald-400">₹2,985.50</span>
+                    </div>
+                </div>
+
+                <!-- Simulated Graph Visual -->
+                <div class="w-full h-48 bg-slate-900/60 rounded-xl border border-slate-800 p-4 flex items-end justify-between space-x-2">
+                    <div class="w-full bg-emerald-500/30 rounded-t h-[40%]"></div>
+                    <div class="w-full bg-emerald-500/50 rounded-t h-[60%]"></div>
+                    <div class="w-full bg-red-500/40 rounded-t h-[35%]"></div>
+                    <div class="w-full bg-emerald-500/60 rounded-t h-[75%]"></div>
+                    <div class="w-full bg-emerald-500/80 rounded-t h-[90%]"></div>
+                    <div class="w-full bg-emerald-500 rounded-t h-[82%]"></div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT PANEL: Buy/Sell & Portfolio Orders -->
+        <section class="space-y-6">
+            
+            <!-- Quick Order Terminal -->
+            <div class="glass-card p-6 rounded-2xl space-y-4">
+                <h3 class="text-md font-bold text-white border-b border-slate-800 pb-3">Quick Trade Terminal</h3>
+                
+                <div>
+                    <label class="text-xs font-semibold text-slate-400 block mb-1">Stock / Symbol</label>
+                    <input type="text" value="RELIANCE" readonly class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-semibold text-slate-400 block mb-1">Quantity</label>
+                        <input type="number" id="trade-qty" value="10" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm font-bold text-white focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-slate-400 block mb-1">Price (₹)</label>
+                        <input type="text" value="2,985.50" readonly class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm font-bold text-slate-300 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button onclick="executeTrade('BUY')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/20 active:scale-95">
+                        BUY
+                    </button>
+                    <button onclick="executeTrade('SELL')" class="bg-red-500 hover:bg-red-400 text-slate-950 font-bold py-3 rounded-xl transition duration-200 shadow-lg shadow-red-500/20 active:scale-95">
+                        SELL
+                    </button>
+                </div>
+
+                <div id="trade-msg" class="hidden text-xs text-center p-2 rounded-lg font-semibold"></div>
+            </div>
+
+            <!-- Active Watchlist -->
+            <div class="glass-card p-6 rounded-2xl">
+                <h3 class="text-md font-bold text-white border-b border-slate-800 pb-3 mb-3">Watchlist</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center py-1 border-b border-slate-800/50">
+                        <div>
+                            <span class="block text-sm font-bold text-white">TCS</span>
+                            <span class="text-[10px] text-slate-400">IT Services</span>
+                        </div>
+                        <span class="text-sm font-bold text-emerald-400">₹3,920.10</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1 border-b border-slate-800/50">
+                        <div>
+                            <span class="block text-sm font-bold text-white">HDFC BANK</span>
+                            <span class="text-[10px] text-slate-400">Banking</span>
+                        </div>
+                        <span class="text-sm font-bold text-red-400">₹1,440.00</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1">
+                        <div>
+                            <span class="block text-sm font-bold text-white">INFOSYS</span>
+                            <span class="text-[10px] text-slate-400">IT Services</span>
+                        </div>
+                        <span class="text-sm font-bold text-emerald-400">₹1,610.50</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
 
     </main>
 
+    <!-- FOOTER -->
+    <footer class="w-full bg-slate-900/60 border-t border-slate-800 py-4 text-center text-xs text-slate-500 z-10">
+        © Go Traders — Live Terminal. All rights reserved.
+    </footer>
+
     <script>
-        const phoneForm = document.getElementById('phone-form');
-        const otpForm = document.getElementById('otp-form');
-        const authContainer = document.getElementById('auth-container');
-        const dashboardContainer = document.getElementById('dashboard-container');
-        
-        const phoneInput = document.getElementById('phone-input');
-        const otpInput = document.getElementById('otp-input');
-        const sendBtn = document.getElementById('send-otp-btn');
-        const verifyBtn = document.getElementById('verify-otp-btn');
-        const alertBox = document.getElementById('alert-box');
-        const targetPhoneLabel = document.getElementById('target-phone');
-        const userDisplayPhone = document.getElementById('user-display-phone');
-        const changeNumBtn = document.getElementById('change-num-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-
-        let activePhone = '';
-
-        function showAlert(msg, type = 'error') {
-            alertBox.innerText = msg;
-            alertBox.classList.remove('hidden', 'bg-red-500/20', 'text-red-300', 'border-red-500/30', 'bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500/30');
+        function executeTrade(type) {
+            const qty = document.getElementById('trade-qty').value;
+            const msgBox = document.getElementById('trade-msg');
             
-            if (type === 'error') {
-                alertBox.classList.add('bg-red-500/20', 'text-red-300', 'border-red-500/30');
+            msgBox.classList.remove('hidden', 'bg-emerald-500/20', 'text-emerald-300', 'bg-red-500/20', 'text-red-300');
+            
+            if (type === 'BUY') {
+                msgBox.innerText = `Order Executed: Bought ${qty} qty of RELIANCE`;
+                msgBox.classList.add('bg-emerald-500/20', 'text-emerald-300');
             } else {
-                alertBox.classList.add('bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500/30');
+                msgBox.innerText = `Order Executed: Sold ${qty} qty of RELIANCE`;
+                msgBox.classList.add('bg-red-500/20', 'text-red-300');
             }
         }
-
-        // STEP 1: Submit Phone Number
-        phoneForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const val = phoneInput.value.trim();
-
-            if (val.length !== 10) {
-                showAlert('Kripya valid 10-digit mobile number daalein.');
-                return;
-            }
-
-            activePhone = `+91 ${val}`;
-            sendBtn.disabled = true;
-            sendBtn.innerText = 'Bhej rahe hain...';
-
-            // Simulate API request without CORS or Fetch Errors
-            setTimeout(() => {
-                sendBtn.disabled = false;
-                sendBtn.innerText = 'OTP Bhejein';
-                
-                showAlert('OTP bhej diya gaya h! (Testing OTP: 123456)', 'success');
-                phoneForm.classList.add('hidden');
-                otpForm.classList.remove('hidden');
-                targetPhoneLabel.innerText = activePhone;
-            }, 1000);
-        });
-
-        // STEP 2: Verify OTP Code
-        otpForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const code = otpInput.value.trim();
-
-            if (code.length !== 6) {
-                showAlert('6-digit ka OTP code darj karein.');
-                return;
-            }
-
-            verifyBtn.disabled = true;
-            verifyBtn.innerText = 'Checking...';
-
-            setTimeout(() => {
-                verifyBtn.disabled = false;
-                verifyBtn.innerText = 'Verify & Continue';
-
-                // Demo verification (123456 or any 6 digit code for test)
-                showAlert('Login successful!', 'success');
-                
-                setTimeout(() => {
-                    authContainer.classList.add('hidden');
-                    dashboardContainer.classList.remove('hidden');
-                    userDisplayPhone.innerText = activePhone;
-                }, 800);
-
-            }, 1000);
-        });
-
-        // Reset Form
-        changeNumBtn.addEventListener('click', () => {
-            otpForm.classList.add('hidden');
-            phoneForm.classList.remove('hidden');
-            alertBox.classList.add('hidden');
-            otpInput.value = '';
-        });
-
-        // Logout Event
-        logoutBtn.addEventListener('click', () => {
-            dashboardContainer.classList.add('hidden');
-            authContainer.classList.remove('hidden');
-            phoneForm.classList.remove('hidden');
-            otpForm.classList.add('hidden');
-            alertBox.classList.add('hidden');
-            phoneInput.value = '';
-            otpInput.value = '';
-        });
     </script>
+
 </body>
 </html>
