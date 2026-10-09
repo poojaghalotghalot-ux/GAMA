@@ -2,616 +2,256 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Go Traders | Mobile OTP & AI Trading Terminal</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Login with OTP</title>
     <style>
-        :root {
-            --bg-dark: #080b11;
-            --panel-bg: #121722;
-            --panel-border: #1e2638;
-            --accent-green: #00e676;
-            --accent-red: #ff3d00;
-            --ai-purple: #7c4dff;
-            --text-main: #ffffff;
-            --text-sub: #94a3b8;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            font-size: 14px;
-        }
-
-        /* 1. LOGIN / OTP OVERLAY */
-        #login-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: var(--bg-dark);
-            z-index: 10000;
+            background-color: #0f172a;
+            color: #f8fafc;
             display: flex;
             justify-content: center;
             align-items: center;
+            min-height: 100vh;
             padding: 20px;
         }
 
-        .login-card {
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 16px;
-            padding: 28px;
+        .card {
+            background-color: #1e293b;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
             width: 100%;
-            max-width: 380px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 400px;
+            border: 1px solid #334155;
         }
 
-        .brand-logo {
+        .card h2 {
+            margin-bottom: 8px;
+            color: #38bdf8;
             font-size: 24px;
-            font-weight: 800;
-            color: var(--accent-green);
-            margin-bottom: 6px;
         }
 
-        .input-box {
+        .card p {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+        }
+
+        .form-group input {
             width: 100%;
-            background: var(--bg-dark);
-            border: 1px solid var(--panel-border);
             padding: 12px;
             border-radius: 8px;
-            color: #fff;
-            font-weight: 700;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            color: #ffffff;
             font-size: 16px;
-            margin: 10px 0;
             outline: none;
-            text-align: center;
-            letter-spacing: 2px;
+            transition: border-color 0.2s;
         }
 
-        .btn-primary {
+        .form-group input:focus {
+            border-color: #38bdf8;
+        }
+
+        .btn {
             width: 100%;
-            background: var(--accent-green);
-            color: #000;
-            border: none;
-            padding: 14px;
+            padding: 12px;
             border-radius: 8px;
-            font-weight: 800;
-            font-size: 15px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        /* 2. ROTATE PHONE PROMPT OVERLAY */
-        #rotate-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: var(--bg-dark);
-            z-index: 9999;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .phone-icon {
-            font-size: 50px;
-            animation: rotatePhone 2s infinite ease-in-out;
-            margin-bottom: 15px;
-        }
-
-        @keyframes rotatePhone {
-            0% { transform: rotate(0deg); }
-            50% { transform: rotate(-90deg); }
-            100% { transform: rotate(-90deg); }
-        }
-
-        /* Orientation rules (triggers after login) */
-        .logged-in @media screen and (orientation: portrait) {
-            #rotate-overlay { display: flex !important; }
-            #app-container { display: none !important; }
-        }
-
-        .logged-in @media screen and (orientation: landscape) {
-            #rotate-overlay { display: none !important; }
-            #app-container { display: flex !important; }
-        }
-
-        /* 3. RECTANGULAR LANDSCAPE DASHBOARD */
-        #app-container {
-            width: 100vw;
-            height: 100vh;
-            display: none;
-            flex-direction: column;
-        }
-
-        .header-bar {
-            height: 42px;
-            background: var(--panel-bg);
-            border-bottom: 1px solid var(--panel-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 15px;
-            flex-shrink: 0;
-        }
-
-        .profile-chip {
-            background: rgba(124, 77, 255, 0.15);
-            border: 1px solid var(--ai-purple);
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .main-split {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            gap: 2px;
-            background: var(--panel-border);
-            overflow: hidden;
-        }
-
-        .left-col, .right-col {
-            background: var(--bg-dark);
-            display: flex;
-            flex-direction: column;
-            padding: 8px;
-            gap: 8px;
-            overflow-y: auto;
-        }
-
-        /* Rectangular Card Components */
-        .rect-card {
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 6px;
-            padding: 8px;
-        }
-
-        .ticker-rect {
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 11px;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-
-        .ticker-move {
-            display: inline-block;
-            animation: ticker 15s linear infinite;
-        }
-
-        @keyframes ticker {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
-
-        .ai-rect {
-            background: rgba(124, 77, 255, 0.12);
-            border: 1px solid var(--ai-purple);
-            border-radius: 6px;
-            padding: 8px;
-        }
-
-        .chart-rect {
-            flex: 1;
-            min-height: 130px;
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 6px;
-            padding: 4px;
-            position: relative;
-        }
-
-        /* Rectangular Action Controls */
-        .nav-tabs {
-            display: flex;
-            gap: 6px;
-            border-bottom: 1px solid var(--panel-border);
-            padding-bottom: 4px;
-        }
-
-        .tab-btn {
-            background: none;
             border: none;
-            color: var(--text-sub);
-            font-weight: 700;
-            font-size: 11px;
+            background-color: #0284c7;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            padding: 2px 6px;
+            transition: background-color 0.2s;
         }
 
-        .tab-btn.active {
-            color: #fff;
-            border-bottom: 2px solid var(--accent-green);
+        .btn:hover {
+            background-color: #0369a1;
         }
 
-        .item-rect {
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 4px;
-            padding: 6px 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            cursor: pointer;
+        .btn:disabled {
+            background-color: #475569;
+            cursor: not-allowed;
         }
 
-        .item-rect.active {
-            border-color: var(--accent-green);
-        }
-
-        .qty-input {
-            width: 100%;
-            background: var(--bg-dark);
-            border: 1px solid var(--panel-border);
-            padding: 6px;
-            border-radius: 4px;
-            color: #fff;
-            font-weight: 700;
-            font-size: 13px;
-            outline: none;
-            margin-top: 2px;
-        }
-
-        .btn-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            margin-top: 6px;
-        }
-
-        .btn-act {
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            font-weight: 800;
+        .status-msg {
+            margin-top: 16px;
             font-size: 14px;
-            color: #fff;
-            cursor: pointer;
+            text-align: center;
         }
 
-        .btn-buy { background: var(--accent-green); color: #000; }
-        .btn-sell { background: var(--accent-red); }
+        .status-msg.error {
+            color: #f87171;
+        }
 
-        .text-green { color: var(--accent-green); }
-        .text-red { color: var(--accent-red); }
+        .status-msg.success {
+            color: #4ade80;
+        }
 
-        #toast {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--ai-purple);
-            color: #fff;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
+        .hidden {
             display: none;
-            z-index: 1000;
         }
     </style>
 </head>
-<body class="not-logged-in">
+<body>
 
-    <!-- STEP 1: MOBILE NUMBER & OTP LOGIN SCREEN -->
-    <div id="login-screen">
-        <div class="login-card">
-            <div class="brand-logo">Go Traders</div>
-            <p style="color: var(--text-sub); font-size: 12px; margin-bottom: 15px;">Official AI League Terminal Login</p>
+    <div class="card">
+        <!-- Step 1: Phone / Mobile Input -->
+        <div id="step-mobile">
+            <h2>Account Login</h2>
+            <p>Apna mobile number daal kar OTP praapt karein</p>
             
-            <div id="step-phone">
-                <input type="tel" id="user-phone" class="input-box" placeholder="Mobile Number" maxlength="10">
-                <button class="btn-primary" onclick="sendOTP()">SEND OTP</button>
-            </div>
-
-            <div id="step-otp" style="display: none;">
-                <p style="color: var(--accent-green); font-size: 11px; margin-bottom: 6px;">OTP Sent to Mobile Number!</p>
-                <input type="number" id="user-otp" class="input-box" placeholder="4-Digit OTP (e.g. 1234)" maxlength="4">
-                <button class="btn-primary" onclick="verifyOTP()">VERIFY & START TRADING</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- STEP 2: ROTATION PROMPT OVERLAY -->
-    <div id="rotate-overlay">
-        <div class="phone-icon">📱</div>
-        <h2>Rotate Phone to Landscape</h2>
-        <p style="color: var(--text-sub); margin-top: 6px; font-size: 12px;">
-            Screen rotate karein taaki Rectangular Layout aur Zoomed-In Buttons active ho sakein.
-        </p>
-    </div>
-
-    <!-- STEP 3: RECTANGULAR LANDSCAPE TRADING TERMINAL -->
-    <div id="app-container">
-        <!-- Top Bar -->
-        <div class="header-bar">
-            <div style="font-weight: 800; color: var(--accent-green);">Go Traders AI</div>
-            <div class="profile-chip" id="profile-display">👤 +91 9876543210</div>
-            <div style="font-size: 11px; font-weight: 700;">
-                Cash: <span id="val-cash" class="text-green">₹1,00,000</span> | PnL: <span id="val-pnl" class="text-green">₹0.00</span>
-            </div>
+            <form id="mobile-form">
+                <div class="form-group">
+                    <label for="phone">Mobile Number</label>
+                    <input type="tel" id="phone" placeholder="+91 9876543210" required />
+                </div>
+                <button type="submit" class="btn" id="send-otp-btn">OTP Bhejein</button>
+            </form>
         </div>
 
-        <!-- Main Split View -->
-        <div class="main-split">
-            <!-- Left Side: Status, Ticker, AI Signals & Chart -->
-            <div class="left-col">
-                <div class="ticker-rect">
-                    <div class="ticker-move" id="ticker-feed">
-                        🔥 Rahul V. bought 50 Qty RELIANCE @ ₹2,450 | ⚡ AI Signal: STRONG BUY
-                    </div>
+        <!-- Step 2: OTP Verification -->
+        <div id="step-otp" class="hidden">
+            <h2>Verify OTP</h2>
+            <p id="otp-sent-to">OTP aapke mobile par bhej diya gaya hai</p>
+
+            <form id="otp-form">
+                <div class="form-group">
+                    <label for="otp">Enter 6-Digit OTP</label>
+                    <input type="text" id="otp" maxlength="6" placeholder="123456" required />
                 </div>
-
-                <div class="ai-rect">
-                    <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--ai-purple);">
-                        <span>🤖 AI STOXO BRAIN V2.0</span>
-                        <span id="ai-signal-type" class="text-green">STRONG BUY (88%)</span>
-                    </div>
-                    <div style="font-size: 10px; color: var(--text-sub); margin-top: 2px;">
-                        Bullish breakouts detected on 5M timeframe for active leagues.
-                    </div>
-                </div>
-
-                <div class="chart-rect">
-                    <canvas id="rectChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Right Side: Watchlist, Leaderboard, Leagues & Buy/Sell -->
-            <div class="right-col">
-                <div class="nav-tabs">
-                    <button class="tab-btn active" onclick="switchTab('watch')">Markets</button>
-                    <button class="tab-btn" onclick="switchTab('leagues')">Active Leagues</button>
-                    <button class="tab-btn" onclick="switchTab('traders')">Pro Traders</button>
-                </div>
-
-                <!-- Markets Section -->
-                <div id="watch-section" style="display: flex; flex-direction: column; gap: 4px;"></div>
-
-                <!-- Leagues Section -->
-                <div id="leagues-section" style="display: none; flex-direction: column; gap: 4px;">
-                    <div class="item-rect">
-                        <div><b>Mega Practice League #2026</b></div>
-                        <span class="text-green" style="font-weight:700;">₹10L Pool</span>
-                    </div>
-                </div>
-
-                <!-- Pro Traders Section -->
-                <div id="traders-section" style="display: none; flex-direction: column; gap: 4px;">
-                    <div class="item-rect">
-                        <div><b>Vikram S.</b> <span style="font-size:10px; color:var(--text-sub);">(82% Win)</span></div>
-                        <button style="background:var(--ai-purple); color:#fff; border:none; padding:2px 6px; border-radius:3px; font-size:10px; font-weight:700;" onclick="copyTrade('Vikram S.')">COPY</button>
-                    </div>
-                </div>
-
-                <!-- Trade Execution Rectangular Card -->
-                <div class="rect-card">
-                    <div style="display: flex; justify-content: space-between; font-weight: 700;">
-                        <span id="selected-title">NIFTY 50</span>
-                        <span id="selected-price" class="text-green">₹18,500.00</span>
-                    </div>
-
-                    <div style="margin-top: 4px;">
-                        <span style="font-size: 10px; color: var(--text-sub);">Quantity</span>
-                        <input type="number" class="qty-input" id="trade-qty" value="10" min="1">
-                    </div>
-
-                    <div class="btn-grid">
-                        <button class="btn-act btn-buy" onclick="placeTrade('BUY')">BUY</button>
-                        <button class="btn-act btn-sell" onclick="placeTrade('SELL')">SELL</button>
-                    </div>
-                </div>
-            </div>
+                <button type="submit" class="btn" id="verify-otp-btn">Verify & Login</button>
+            </form>
         </div>
-    </div>
 
-    <div id="toast">Trade Executed</div>
+        <div id="status-message" class="status-msg"></div>
+    </div>
 
     <script>
-        // Data Engine State
-        let userPhoneNum = '';
-        let virtualCash = 100000;
-        let stocks = {
-            'NIFTY 50': { price: 18500.00, change: +0.65 },
-            'BANKNIFTY': { price: 43200.00, change: -0.30 },
-            'RELIANCE': { price: 2450.00, change: +1.20 },
-            'TATA MOTORS': { price: 620.00, change: +2.10 }
-        };
-        let activeSymbol = 'NIFTY 50';
-        let positions = [];
+        // CONFIGURATION: Apne Backend API URL ya Gateway Endpoint se replace karein
+        const API_BASE_URL = "https://your-domain.com/api"; 
 
-        // OTP Auth Engine
-        function sendOTP() {
-            let phone = document.getElementById('user-phone').value;
-            if (phone.length < 10) return alert('Kripya 10-digit sahi mobile number daalein!');
-            userPhoneNum = phone;
-            document.getElementById('step-phone').style.display = 'none';
-            document.getElementById('step-otp').style.display = 'block';
+        const mobileStep = document.getElementById('step-mobile');
+        const otpStep = document.getElementById('step-otp');
+        const mobileForm = document.getElementById('mobile-form');
+        const otpForm = document.getElementById('otp-form');
+        const statusMsg = document.getElementById('status-message');
+        const sendBtn = document.getElementById('send-otp-btn');
+        const verifyBtn = document.getElementById('verify-otp-btn');
+
+        let userPhone = '';
+
+        // Helper function for messages
+        function showMessage(msg, isError = false) {
+            statusMsg.innerText = msg;
+            statusMsg.className = `status-msg ${isError ? 'error' : 'success'}`;
         }
 
-        function verifyOTP() {
-            let otp = document.getElementById('user-otp').value;
-            if (otp.length < 4) return alert('Kripya valid OTP daalein!');
+        // Send OTP API Call
+        mobileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            userPhone = document.getElementById('phone').value.trim();
 
-            document.getElementById('profile-display').innerText = `👤 +91 ${userPhoneNum}`;
-            document.getElementById('login-screen').style.display = 'none';
-            document.body.classList.remove('not-logged-in');
-            document.body.classList.add('logged-in');
-
-            checkOrientation();
-            initChart();
-            renderStocks();
-        }
-
-        // Orientation Checker
-        function checkOrientation() {
-            if (!document.body.classList.contains('logged-in')) return;
-            if (window.innerHeight > window.innerWidth) {
-                document.getElementById('rotate-overlay').style.display = 'flex';
-                document.getElementById('app-container').style.display = 'none';
-            } else {
-                document.getElementById('rotate-overlay').style.display = 'none';
-                document.getElementById('app-container').style.display = 'flex';
+            if (!userPhone) {
+                showMessage("Kripya sahi mobile number daalein.", true);
+                return;
             }
-        }
-        window.addEventListener('resize', checkOrientation);
 
-        // Chart Setup
-        let chart;
-        function initChart() {
-            const ctx = document.getElementById('rectChart').getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['1', '2', '3', '4', '5'],
-                    datasets: [{
-                        data: [18450, 18470, 18460, 18490, 18500],
-                        borderColor: '#00e676',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        pointRadius: 0,
-                        fill: true,
-                        backgroundColor: 'rgba(0, 230, 118, 0.05)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { color: '#1e2638' }, ticks: { color: '#94a3b8', font: { size: 9 } } },
-                        y: { grid: { color: '#1e2638' }, ticks: { color: '#94a3b8', font: { size: 9 } } }
-                    }
+            sendBtn.disabled = true;
+            sendBtn.innerText = "Bhej rahe hain...";
+            showMessage("");
+
+            try {
+                /* 
+                  BACKEND INTEGRATION:
+                  Apne actual API endpoint par POST request bhejein.
+                */
+                const response = await fetch(`${API_BASE_URL}/send-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: userPhone })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showMessage("OTP safaltapoorvak bhej diya gaya!");
+                    mobileStep.classList.add('hidden');
+                    otpStep.classList.remove('hidden');
+                    document.getElementById('otp-sent-to').innerText = `OTP sent to ${userPhone}`;
+                } else {
+                    throw new Error(data.message || "OTP bhejne me samasya aayi.");
                 }
-            });
-        }
 
-        // Render Stocks List
-        function renderStocks() {
-            const box = document.getElementById('watch-section');
-            box.innerHTML = '';
-            for (let key in stocks) {
-                let s = stocks[key];
-                let isUp = s.change >= 0;
-                let div = document.createElement('div');
-                div.className = `item-rect ${key === activeSymbol ? 'active' : ''}`;
-                div.onclick = () => selectStock(key);
-                div.innerHTML = `
-                    <div><b>${key}</b></div>
-                    <div style="text-align:right;">
-                        <div>₹${s.price.toFixed(2)}</div>
-                        <div style="font-size:10px;" class="${isUp ? 'text-green' : 'text-red'}">${isUp ? '+' : ''}${s.change.toFixed(2)}%</div>
-                    </div>
-                `;
-                box.appendChild(div);
+            } catch (err) {
+                // Fallback for Demo / Direct Client Logic
+                console.error("API Error:", err);
+                showMessage(err.message || "Server Error: Code me API URL update karein.", true);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerText = "OTP Bhejein";
             }
-        }
+        });
 
-        function selectStock(key) {
-            activeSymbol = key;
-            document.getElementById('selected-title').innerText = key;
-            document.getElementById('selected-price').innerText = '₹' + stocks[key].price.toFixed(2);
-            renderStocks();
-        }
+        // Verify OTP API Call
+        otpForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const otpCode = document.getElementById('otp').value.trim();
 
-        // Live Simulation Loop
-        setInterval(() => {
-            if (!document.body.classList.contains('logged-in')) return;
-
-            for (let key in stocks) {
-                stocks[key].price += (Math.random() - 0.49) * 3;
+            if (otpCode.length < 4) {
+                showMessage("Sahi OTP code daalein.", true);
+                return;
             }
 
-            let p = stocks[activeSymbol].price;
-            document.getElementById('selected-price').innerText = '₹' + p.toFixed(2);
+            verifyBtn.disabled = true;
+            verifyBtn.innerText = "Checking...";
+            showMessage("");
 
-            if (chart) {
-                chart.data.datasets[0].data.push(p);
-                chart.data.datasets[0].data.shift();
-                chart.update();
+            try {
+                const response = await fetch(`${API_BASE_URL}/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: userPhone, otp: otpCode })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showMessage("Login Successful! Redirecting...");
+                    setTimeout(() => {
+                        window.location.href = "/dashboard"; // Sahi page path daalein
+                    }, 1500);
+                } else {
+                    throw new Error(data.message || "Incorrect OTP");
+                }
+
+            } catch (err) {
+                console.error("Verification Error:", err);
+                showMessage(err.message || "Invalid OTP, dobara try karein.", true);
+            } finally {
+                verifyBtn.disabled = false;
+                verifyBtn.innerText = "Verify & Login";
             }
-
-            renderStocks();
-            updatePnL();
-        }, 1500);
-
-        function placeTrade(type) {
-            let qty = parseInt(document.getElementById('trade-qty').value) || 0;
-            let price = stocks[activeSymbol].price;
-            let total = qty * price;
-
-            if (type === 'BUY' && total > virtualCash) return alert('Insufficient Balance!');
-
-            if (type === 'BUY') virtualCash -= total;
-            else virtualCash += total;
-
-            positions.push({ symbol: activeSymbol, type: type, qty: qty, price: price });
-            showToast(`${type} Order Executed for ${qty} Qty!`);
-            updatePnL();
-        }
-
-        function copyTrade(name) {
-            placeTrade('BUY');
-            showToast(`Copy Trade Executed from ${name}!`);
-        }
-
-        function updatePnL() {
-            document.getElementById('val-cash').innerText = '₹' + virtualCash.toLocaleString('en-IN', {maximumFractionDigits:0});
-            let pnl = 0;
-            positions.forEach(pos => {
-                let curP = stocks[pos.symbol].price;
-                pnl += pos.type === 'BUY' ? (curP - pos.price) * pos.qty : (pos.price - curP) * pos.qty;
-            });
-            let pnlEl = document.getElementById('val-pnl');
-            pnlEl.innerText = '₹' + pnl.toFixed(2);
-            pnlEl.className = pnl >= 0 ? 'text-green' : 'text-red';
-        }
-
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('watch-section').style.display = 'none';
-            document.getElementById('leagues-section').style.display = 'none';
-            document.getElementById('traders-section').style.display = 'none';
-
-            if (tab === 'watch') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('watch-section').style.display = 'flex';
-            } else if (tab === 'leagues') {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('leagues-section').style.display = 'flex';
-            } else {
-                document.querySelectorAll('.tab-btn')[2].classList.add('active');
-                document.getElementById('traders-section').style.display = 'flex';
-            }
-        }
-
-        function showToast(msg) {
-            let t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 2000);
-        }
+        });
     </script>
 </body>
 </html>
