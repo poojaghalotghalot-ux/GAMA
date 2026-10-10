@@ -1,232 +1,515 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Go Traders - Pro Live & Copy Trading</title>
-    <!-- Tailwind CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Traders - Advanced AI Trading Platform</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0b0e14',
+                        cardbg: '#12161f',
+                        bordercolor: '#1e2533',
+                        accentgreen: '#0ecb81',
+                        accentred: '#f6465d'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js & Luxon for Advanced Financial Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .glass-card {
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        /* Mobile Horizontal Scroll Adjustments */
-        body {
-            touch-action: manipulation;
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0e14; }
+        ::-webkit-scrollbar-thumb { background: #1e2533; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2a3447; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between relative overflow-x-hidden">
+<body class="bg-darkbg text-gray-100 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- HEADER / NAVBAR -->
-    <header class="w-full bg-slate-900/90 border-b border-slate-800 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 bg-sky-500/10 border border-sky-500/30 rounded-xl flex items-center justify-center text-sky-400 font-black text-base">
-                    GT
-                </div>
-                <div>
-                    <h1 class="text-base font-black tracking-wide text-white">Go Traders Pro</h1>
-                    <p class="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">● Real-Time Feed</p>
-                </div>
+    <!-- Top Navigation Bar -->
+    <header class="bg-cardbg border-b border-bordercolor sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-md">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-lg text-white font-bold text-xl shadow-lg">
+                <i class="fa-solid fa-chart-line"></i>
             </div>
-            
-            <div class="flex items-center space-x-3">
-                <!-- Rotate / Fullscreen Button -->
-                <button onclick="rotateScreen()" class="bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition">
-                    <span>🔄 Rotate Screen</span>
-                </button>
+            <div>
+                <h1 class="font-extrabold text-lg tracking-wide bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">GO TRADERS</h1>
+                <p class="text-xs text-gray-400">AI-Powered Pro Simulation</p>
+            </div>
+        </div>
 
-                <div class="text-right">
-                    <span class="block text-[9px] text-slate-400 font-medium uppercase">Practice Balance</span>
-                    <span id="wallet-balance" class="text-sm font-extrabold text-emerald-400">₹1,00,000.00</span>
-                </div>
+        <div class="flex items-center space-x-4 md:space-x-6">
+            <div class="hidden md:flex items-center space-x-2 bg-darkbg px-3 py-1.5 rounded-lg border border-bordercolor text-sm">
+                <span class="text-gray-400">Asset:</span>
+                <span id="currentAssetLabel" class="font-bold text-blue-400">BTC/USDT</span>
             </div>
+            <div class="bg-darkbg px-4 py-1.5 rounded-lg border border-bordercolor flex items-center space-x-2">
+                <i class="fa-solid fa-wallet text-yellow-500"></i>
+                <span class="text-xs text-gray-400">Balance:</span>
+                <span id="userBalance" class="font-bold text-green-400 text-base">$10,000.00</span>
+            </div>
+            <button onclick="resetAccount()" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg border border-bordercolor transition">
+                <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+            </button>
         </div>
     </header>
 
-    <!-- MAIN TERMINAL CONTENT -->
-    <main class="max-w-7xl mx-auto px-4 py-4 w-full flex-grow z-10 grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <!-- Main Dashboard Layout -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 max-w-[1700px] w-full mx-auto">
         
-        <!-- LEFT PANEL: Real Trading Chart & Order Form -->
-        <section class="lg:col-span-2 space-y-4">
-            
-            <!-- Real TradingView Interactive Chart -->
-            <div class="glass-card p-3.5 rounded-2xl">
-                <div class="flex justify-between items-center mb-2">
-                    <div class="flex items-center space-x-2">
-                        <h2 class="text-sm font-bold text-white">BTC/USDT (Real Crypto/Forex Stream)</h2>
-                        <span id="live-price" class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">FETCHING...</span>
-                    </div>
-                    <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">Real Chart</span>
+        <!-- Left Sidebar: Asset Watchlist -->
+        <section class="bg-cardbg border border-bordercolor rounded-xl p-4 flex flex-col space-y-3 shadow-lg lg:col-span-1">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 flex items-center">
+                <i class="fa-solid fa-list-ul mr-2 text-blue-500"></i> Market Watchlist
+            </h2>
+            <div id="assetList" class="space-y-2 overflow-y-auto max-h-[420px]">
+                <!-- Dynamically populated assets -->
+            </div>
+
+            <!-- AI Market Intelligence Box -->
+            <div class="mt-auto bg-darkbg border border-bordercolor rounded-xl p-3 flex flex-col space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-indigo-400 flex items-center">
+                        <i class="fa-solid fa-brain mr-1.5 animate-pulse"></i> AI Trend Predictor
+                    </span>
+                    <span id="aiSignalBadge" class="text-[10px] px-2 py-0.5 rounded font-bold bg-green-500/20 text-accentgreen">BULLISH</span>
                 </div>
-                
-                <!-- TradingView Embed Chart -->
-                <div class="w-full h-80 rounded-xl overflow-hidden border border-slate-800">
-                    <iframe id="tradingview_widget" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=BINANCE%3ABTCUSDT&interval=1&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=%5B%5D&theme=dark&style=1&timezone=Asia%2FKolkata" 
-                            class="w-full h-full" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
+                <p id="aiInsightText" class="text-xs text-gray-300 leading-relaxed">Analyzing order books and volatility indices...</p>
+                <button onclick="refreshAIAnalysis()" class="w-full mt-1 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 text-xs py-1.5 rounded-lg border border-indigo-500/30 transition">
+                    Run Deep Scan
+                </button>
+            </div>
+        </section>
+
+        <!-- Center Section: Chart & Trading Control Panel -->
+        <section class="lg:col-span-2 flex flex-col space-y-4">
+            
+            <!-- Live Chart Card -->
+            <div class="bg-cardbg border border-bordercolor rounded-xl p-4 flex flex-col shadow-lg relative h-[420px]">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-3">
+                        <h3 id="chartAssetName" class="font-bold text-lg">Bitcoin (BTC)</h3>
+                        <span id="livePriceDisplay" class="text-lg font-mono font-bold text-white">$64,250.00</span>
+                        <span id="priceChangeDisplay" class="text-xs px-2 py-0.5 rounded bg-green-500/20 text-accentgreen font-semibold">+2.45%</span>
+                    </div>
+                    <div class="flex space-x-1 bg-darkbg p-1 rounded-lg border border-bordercolor text-xs">
+                        <button onclick="setChartInterval('1s')" class="px-2 py-1 rounded bg-blue-600 text-white font-semibold">1s</button>
+                        <button onclick="setChartInterval('5s')" class="px-2 py-1 rounded hover:bg-gray-800 text-gray-400">5s</button>
+                    </div>
+                </div>
+                <div class="flex-1 relative w-full h-full">
+                    <canvas id="tradingChart"></canvas>
                 </div>
             </div>
 
-            <!-- Paper Trade Terminal -->
-            <div class="glass-card p-4 rounded-2xl space-y-3">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                    <h3 class="text-xs font-bold text-white uppercase tracking-wider">Practice Execution Terminal</h3>
-                    <span class="text-[10px] text-amber-400 font-semibold">Zero Risk Demo</span>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3">
-                    <div>
-                        <label class="text-[10px] font-semibold text-slate-400 block mb-1">Asset</label>
-                        <input type="text" value="BTC/USDT" readonly class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-none">
+            <!-- Trade Execution Panel -->
+            <div class="bg-cardbg border border-bordercolor rounded-xl p-4 shadow-lg grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <div class="space-y-1">
+                    <label class="text-xs text-gray-400">Investment Amount ($)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 text-sm">$</span>
+                        <input type="number" id="tradeAmountInput" value="100" min="10" max="100000" class="w-full bg-darkbg border border-bordercolor rounded-lg pl-8 pr-4 py-2 text-sm font-bold text-white focus:outline-none focus:border-blue-500">
                     </div>
-                    <div>
-                        <label class="text-[10px] font-semibold text-slate-400 block mb-1">Quantity</label>
-                        <input type="number" id="trade-qty" value="1" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-sky-500">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-semibold text-slate-400 block mb-1">Trade Type</label>
-                        <select id="trade-type-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-200 focus:outline-none">
-                            <option value="MARKET">Market Order</option>
-                            <option value="LIMIT">Limit Order</option>
-                        </select>
+                    <div class="flex space-x-1 pt-1">
+                        <button onclick="setAmount(50)" class="text-[10px] bg-darkbg hover:bg-gray-800 border border-bordercolor px-2 py-0.5 rounded text-gray-300">$50</button>
+                        <button onclick="setAmount(100)" class="text-[10px] bg-darkbg hover:bg-gray-800 border border-bordercolor px-2 py-0.5 rounded text-gray-300">$100</button>
+                        <button onclick="setAmount(500)" class="text-[10px] bg-darkbg hover:bg-gray-800 border border-bordercolor px-2 py-0.5 rounded text-gray-300">$500</button>
+                        <button onclick="setAmount(1000)" class="text-[10px] bg-darkbg hover:bg-gray-800 border border-bordercolor px-2 py-0.5 rounded text-gray-300">$1000</button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 pt-1">
-                    <button onclick="executeTrade('BUY')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-2.5 rounded-xl transition duration-200 shadow-lg shadow-emerald-500/20 active:scale-95 text-xs">
-                        BUY / LONG
+                <div class="space-y-1">
+                    <label class="text-xs text-gray-400">Leverage Multiplier</label>
+                    <select id="leverageSelect" class="w-full bg-darkbg border border-bordercolor rounded-lg px-3 py-2 text-sm font-bold text-blue-400 focus:outline-none focus:border-blue-500">
+                        <option value="1">1x (Standard)</option>
+                        <option value="5">5x Leverage</option>
+                        <option value="10">10x Leverage</option>
+                        <option value="20" selected>20x Leverage (Pro)</option>
+                        <option value="50">50x Leverage (Risk)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button onclick="executeTrade('BUY')" class="bg-accentgreen hover:bg-emerald-600 text-gray-950 font-extrabold py-3 rounded-xl shadow-lg transition flex flex-col items-center justify-center">
+                        <span class="text-sm tracking-wide"><i class="fa-solid fa-arrow-up mr-1"></i> LONG / BUY</span>
+                        <span class="text-[10px] opacity-80">Profit if Up 📈</span>
                     </button>
-                    <button onclick="executeTrade('SELL')" class="bg-red-500 hover:bg-red-400 text-slate-950 font-black py-2.5 rounded-xl transition duration-200 shadow-lg shadow-red-500/20 active:scale-95 text-xs">
-                        SELL / SHORT
+                    <button onclick="executeTrade('SELL')" class="bg-accentred hover:bg-red-700 text-white font-extrabold py-3 rounded-xl shadow-lg transition flex flex-col items-center justify-center">
+                        <span class="text-sm tracking-wide"><i class="fa-solid fa-arrow-down mr-1"></i> SHORT / SELL</span>
+                        <span class="text-[10px] opacity-80">Profit if Down 📉</span>
                     </button>
                 </div>
-
-                <div id="trade-msg" class="hidden text-xs text-center p-2 rounded-lg font-semibold"></div>
             </div>
 
         </section>
 
-        <!-- RIGHT PANEL: PRO COPY TRADING BOARD -->
-        <section class="space-y-4">
-            
-            <div class="glass-card p-4 rounded-2xl space-y-3">
-                <div class="border-b border-slate-800 pb-2">
-                    <h3 class="text-sm font-bold text-white">Pro Copy Trading Live</h3>
-                    <p class="text-[10px] text-slate-400">Master traders ki real trades automatically copy karein</p>
+        <!-- Right Sidebar: Copy Trading & Leaderboard -->
+        <section class="bg-cardbg border border-bordercolor rounded-xl p-4 flex flex-col space-y-4 shadow-lg lg:col-span-1">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 flex items-center">
+                <i class="fa-solid fa-users mr-2 text-indigo-500"></i> Pro Copy Trading
+            </h2>
+            <div class="space-y-3 overflow-y-auto max-h-[300px]">
+                <!-- Trader 1 -->
+                <div class="bg-darkbg border border-bordercolor rounded-xl p-3 flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-sm text-gray-200">Alex_CryptoPro</h4>
+                        <p class="text-[10px] text-accentgreen font-semibold">+342.8% ROI (30D)</p>
+                    </div>
+                    <button onclick="toggleCopyTrader('Alex_CryptoPro', this)" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg transition">Copy</button>
                 </div>
-
-                <!-- Pro Trader 1 -->
-                <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl space-y-2">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <span class="block text-xs font-bold text-white">Rohan Sharma (Pro)</span>
-                            <span class="text-[9px] text-emerald-400 font-semibold">Win Rate: 92.4% | Return: +240%</span>
-                        </div>
-                        <span class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded">Active</span>
+                <!-- Trader 2 -->
+                <div class="bg-darkbg border border-bordercolor rounded-xl p-3 flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-sm text-gray-200">Satoshi_King</h4>
+                        <p class="text-[10px] text-accentgreen font-semibold">+189.4% ROI (30D)</p>
                     </div>
-
-                    <div class="bg-slate-950/60 p-2 rounded-lg flex justify-between items-center text-[11px] border border-slate-800">
-                        <span class="text-slate-400">Live Trade:</span>
-                        <span class="text-emerald-400 font-bold">BUY BTC/USDT</span>
-                    </div>
-
-                    <button onclick="copyTrade('Rohan Sharma', 'BUY', 'BTC/USDT')" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold py-2 rounded-lg text-xs transition duration-200 active:scale-95">
-                        ⚡ 1-Click Copy Trade
-                    </button>
+                    <button onclick="toggleCopyTrader('Satoshi_King', this)" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg transition">Copy</button>
                 </div>
-
-                <!-- Pro Trader 2 -->
-                <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl space-y-2">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <span class="block text-xs font-bold text-white">Priya Patel (Master)</span>
-                            <span class="text-[9px] text-emerald-400 font-semibold">Win Rate: 89.1% | Return: +185%</span>
-                        </div>
-                        <span class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded">Active</span>
-                    </div>
-
-                    <div class="bg-slate-950/60 p-2 rounded-lg flex justify-between items-center text-[11px] border border-slate-800">
-                        <span class="text-slate-400">Live Trade:</span>
-                        <span class="text-red-400 font-bold">SELL ETH/USDT</span>
-                    </div>
-
-                    <button onclick="copyTrade('Priya Patel', 'SELL', 'ETH/USDT')" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold py-2 rounded-lg text-xs transition duration-200 active:scale-95">
-                        ⚡ 1-Click Copy Trade
-                    </button>
-                </div>
-
             </div>
 
+            <!-- Global Leaderboard -->
+            <div class="mt-auto pt-2 border-t border-bordercolor">
+                <h3 class="text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Global Leaderboard</h3>
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between items-center bg-darkbg p-2 rounded-lg border border-bordercolor">
+                        <span class="text-gray-300 font-medium">1. CryptoQueen_99</span>
+                        <span class="text-green-400 font-bold">$148,290</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-darkbg p-2 rounded-lg border border-bordercolor">
+                        <span class="text-gray-300 font-medium">2. BullishAlpha</span>
+                        <span class="text-green-400 font-bold">$94,120</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bottom Section: Active Positions & Trade History -->
+        <section class="lg:col-span-4 bg-cardbg border border-bordercolor rounded-xl p-4 shadow-lg">
+            <div class="flex items-center justify-between mb-3 border-b border-bordercolor pb-2">
+                <h3 class="font-bold text-sm uppercase tracking-wide text-gray-300 flex items-center">
+                    <i class="fa-solid fa-clock-rotate-left mr-2 text-blue-500"></i> Active Positions & Real-Time PnL
+                </h3>
+                <span id="activeCountBadge" class="text-xs bg-blue-500/20 text-blue-400 px-2.5 py-0.5 rounded-full font-bold">0 Active</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-darkbg text-gray-400 uppercase tracking-wider border-b border-bordercolor">
+                        <tr>
+                            <th class="p-3">Asset</th>
+                            <th class="p-3">Type</th>
+                            <th class="p-3">Entry Price</th>
+                            <th class="p-3">Current Price</th>
+                            <th class="p-3">Investment</th>
+                            <th class="p-3">Leverage</th>
+                            <th class="p-3">Live PnL ($ / %)</th>
+                            <th class="p-3 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activePositionsTable" class="divide-y divide-bordercolor">
+                        <tr>
+                            <td colspan="8" class="text-center py-6 text-gray-500 italic">No active positions open. Select an asset and enter a trade above!</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
     </main>
 
+    <!-- Footer -->
+    <footer class="bg-cardbg border-t border-bordercolor py-3 text-center text-xs text-gray-500 mt-auto">
+        &copy; 2026 Go Traders Pro Engine. Simulated real-time market execution environment.
+    </footer>
+
+    <!-- JavaScript Trading Logic -->
     <script>
-        let balance = 100000;
-        let currentBtcPrice = 65000;
+        // Assets Database
+        let assets = [
+            { symbol: 'BTC/USDT', name: 'Bitcoin', price: 64250.00, change: 2.45, history: [] },
+            { symbol: 'ETH/USDT', name: 'Ethereum', price: 3450.00, change: -1.12, history: [] },
+            { symbol: 'SOL/USDT', name: 'Solana', price: 145.20, change: 5.80, history: [] },
+            { symbol: 'DOGE/USDT', name: 'Dogecoin', price: 0.125, change: 3.40, history: [] },
+            { symbol: 'AAPL', name: 'Apple Inc.', price: 225.50, change: 0.85, history: [] }
+        ];
 
-        // WebSocket for Live Price Ticker (Real Market Connection)
-        const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@ticker');
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            currentBtcPrice = parseFloat(data.c);
-            const livePriceElem = document.getElementById('live-price');
-            livePriceElem.innerText = `$${currentBtcPrice.toFixed(2)}`;
-        };
+        let currentAsset = assets[0];
+        let userBalance = 10000.00;
+        let activePositions = [];
+        let chartInstance = null;
 
-        // Rotate Screen Functionality
-        async function rotateScreen() {
-            try {
-                if (!document.fullscreenElement) {
-                    await document.documentElement.requestFullscreen();
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            renderWatchlist();
+            initChart();
+            startLiveMarketSimulation();
+            refreshAIAnalysis();
+        });
+
+        // Render Watchlist Sidebar
+        function renderWatchlist() {
+            const container = document.getElementById('assetList');
+            container.innerHTML = '';
+            assets.forEach(asset => {
+                const isSelected = asset.symbol === currentAsset.symbol;
+                const isPos = asset.change >= 0;
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-xl border cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-blue-600/10 border-blue-500' : 'bg-darkbg border-bordercolor hover:border-gray-600'}`;
+                div.onclick = () => switchAsset(asset.symbol);
+                div.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-sm">${asset.symbol}</h4>
+                        <p class="text-[10px] text-gray-400">${asset.name}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-mono font-bold text-sm">$${asset.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                        <p class="text-[10px] font-semibold ${isPos ? 'text-accentgreen' : 'text-accentred'}">${isPos ? '+' : ''}${asset.change}%</p>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Switch Active Asset
+        function switchAsset(symbol) {
+            currentAsset = assets.find(a => a.symbol === symbol);
+            document.getElementById('currentAssetLabel').innerText = currentAsset.symbol;
+            document.getElementById('chartAssetName').innerText = `${currentAsset.name} (${currentAsset.symbol.split('/')[0]})`;
+            renderWatchlist();
+            updateChartData();
+            refreshAIAnalysis();
+        }
+
+        // Initialize Chart.js
+        function initChart() {
+            const ctx = document.getElementById('tradingChart').getContext('2d');
+            
+            // Populate initial dummy history if empty
+            if(currentAsset.history.length === 0) {
+                let basePrice = currentAsset.price;
+                for(let i = 20; i >= 0; i--) {
+                    currentAsset.history.push(basePrice + (Math.random() - 0.5) * (basePrice * 0.002));
                 }
-                if (screen.orientation && screen.orientation.lock) {
-                    await screen.orientation.lock('landscape');
-                }
-            } catch (err) {
-                alert("Mobile rotate button: Kripya phone ki Auto-Rotate setting ON rakhein.");
             }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(currentAsset.history.length).fill(''),
+                    datasets: [{
+                        label: currentAsset.symbol,
+                        data: currentAsset.history,
+                        borderColor: '#0ecb81',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.2,
+                        fill: true,
+                        backgroundColor: function(context) {
+                            const chart = context.chart;
+                            const {ctx, chartArea} = chart;
+                            if (!chartArea) return null;
+                            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                            gradient.addColorStop(0, 'rgba(14, 203, 129, 0)');
+                            gradient.addColorStop(1, 'rgba(14, 203, 129, 0.25)');
+                            return gradient;
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { 
+                            grid: { color: '#1e2533' },
+                            ticks: { color: '#9ca3af', font: { size: 10 } }
+                        }
+                    },
+                    animation: false
+                }
+            });
         }
 
-        function updateWallet() {
-            document.getElementById('wallet-balance').innerText = `₹${balance.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+        // Update Chart Display
+        function updateChartData() {
+            if(!chartInstance) return;
+            chartInstance.data.datasets[0].label = currentAsset.symbol;
+            chartInstance.data.datasets[0].data = currentAsset.history;
+            const isPos = currentAsset.change >= 0;
+            chartInstance.data.datasets[0].borderColor = isPos ? '#0ecb81' : '#f6465d';
+            chartInstance.update();
         }
 
+        // Real-Time Market Tick Simulation (Changes prices dynamically)
+        function startLiveMarketSimulation() {
+            setInterval(() => {
+                assets.forEach(asset => {
+                    const fluctuation = (Math.random() - 0.49) * (asset.price * 0.0015);
+                    asset.price = Math.max(0.01, asset.price + fluctuation);
+                    asset.change = +(asset.change + (fluctuation > 0 ? 0.02 : -0.02)).toFixed(2);
+                    
+                    if(asset.symbol === currentAsset.symbol) {
+                        asset.history.push(asset.price);
+                        if(asset.history.length > 30) asset.history.shift();
+                        updateChartData();
+                        
+                        document.getElementById('livePriceDisplay').innerText = `$${asset.price.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                        const badge = document.getElementById('priceChangeDisplay');
+                        badge.innerText = `${asset.change >= 0 ? '+' : ''}${asset.change}%`;
+                        badge.className = `text-xs px-2 py-0.5 rounded font-semibold ${asset.change >= 0 ? 'bg-green-500/20 text-accentgreen' : 'bg-red-500/20 text-accentred'}`;
+                    }
+                });
+                renderWatchlist();
+                updateActivePositionsPnL();
+            }, 1000);
+        }
+
+        // Set Trade Investment Shortcut
+        function setAmount(val) {
+            document.getElementById('tradeAmountInput').value = val;
+        }
+
+        // Execute Real Trading Order
         function executeTrade(type) {
-            const qty = parseInt(document.getElementById('trade-qty').value) || 1;
-            const cost = qty * 5000;
-            const msgBox = document.getElementById('trade-msg');
+            const amount = parseFloat(document.getElementById('tradeAmountInput').value);
+            const leverage = parseInt(document.getElementById('leverageSelect').value);
 
-            msgBox.classList.remove('hidden', 'bg-emerald-500/20', 'text-emerald-300', 'bg-red-500/20', 'text-red-300');
-
-            if (balance < cost) {
-                msgBox.innerText = 'Insufficient Practice Balance!';
-                msgBox.classList.add('bg-red-500/20', 'text-red-300');
+            if(isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid investment amount.');
                 return;
             }
 
-            balance -= cost;
-            updateWallet();
+            if(amount > userBalance) {
+                alert('Insufficient wallet balance!');
+                return;
+            }
 
-            msgBox.innerText = `Success: Executed ${type} order for BTC/USDT!`;
-            msgBox.classList.add('bg-emerald-500/20', 'text-emerald-300');
+            userBalance -= amount;
+            document.getElementById('userBalance').innerText = `$${userBalance.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+
+            const position = {
+                id: Date.now(),
+                assetSymbol: currentAsset.symbol,
+                type: type, // 'BUY' (Long) or 'SELL' (Short)
+                entryPrice: currentAsset.price,
+                investment: amount,
+                leverage: leverage
+            };
+
+            activePositions.push(position);
+            renderActivePositions();
         }
 
-        function copyTrade(trader, type, symbol) {
-            if (balance < 10000) {
-                alert('Balance low for copy trade!');
+        // Calculate and Render Live PnL for Active Positions
+        function updateActivePositionsPnL() {
+            if(activePositions.length === 0) return;
+            
+            activePositions.forEach(pos => {
+                const asset = assets.find(a => a.symbol === pos.assetSymbol);
+                const priceDiff = asset.price - pos.entryPrice;
+                
+                // PnL formula based on Long (BUY) or Short (SELL) with Leverage
+                let pnlPercent = (priceDiff / pos.entryPrice) * 100 * pos.leverage;
+                if(pos.type === 'SELL') pnlPercent = -pnlPercent;
+
+                let pnlDollar = (pos.investment * (pnlPercent / 100));
+                pos.currentPnL = pnlDollar;
+                pos.currentPnLPercent = pnlPercent;
+                pos.currentPrice = asset.price;
+            });
+
+            renderActivePositions();
+        }
+
+        // Render Active Positions Table
+        function renderActivePositions() {
+            const tbody = document.getElementById('activePositionsTable');
+            document.getElementById('activeCountBadge.innerText', `${activePositions.length} Active`);
+            
+            if(activePositions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-500 italic">No active positions open. Select an asset and enter a trade above!</td></tr>`;
                 return;
             }
-            balance -= 10000;
-            updateWallet();
 
-            const msgBox = document.getElementById('trade-msg');
-            msgBox.classList.remove('hidden', 'bg-red-500/20', 'text-red-300');
-            msgBox.innerText = `Copied ${trader}'s ${type} trade on ${symbol}!`;
-            msgBox.classList.add('bg-emerald-500/20', 'text-emerald-300');
+            tbody.innerHTML = '';
+            activePositions.forEach(pos => {
+                const isProfit = (pos.currentPnL || 0) >= 0;
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-darkbg/50 transition';
+                tr.innerHTML = `
+                    <td class="p-3 font-bold">${pos.assetSymbol}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${pos.type === 'BUY' ? 'bg-green-500/20 text-accentgreen' : 'bg-red-500/20 text-accentred'}">${pos.type === 'BUY' ? 'LONG 📈' : 'SHORT 📉'}</span></td>
+                    <td class="p-3 font-mono">$${pos.entryPrice.toFixed(2)}</td>
+                    <td class="p-3 font-mono">$${(pos.currentPrice || pos.entryPrice).toFixed(2)}</td>
+                    <td class="p-3">$${pos.investment.toFixed(2)}</td>
+                    <td class="p-3 font-bold text-blue-400">${pos.leverage}x</td>
+                    <td class="p-3 font-mono font-bold ${isProfit ? 'text-accentgreen' : 'text-accentred'}">
+                        ${isProfit ? '+' : ''}${(pos.currentPnL || 0).toFixed(2)} (${isProfit ? '+' : ''}${(pos.currentPnLPercent || 0).toFixed(2)}%)
+                    </td>
+                    <td class="p-3 text-right">
+                        <button onclick="closePosition(${pos.id})" class="bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white px-2.5 py-1 rounded text-xs transition">Close</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Close Position & Realize PnL
+        function closePosition(id) {
+            const index = activePositions.findIndex(p => p.id === id);
+            if(index !== -1) {
+                const pos = activePositions[index];
+                const finalReturn = pos.investment + (pos.currentPnL || 0);
+                userBalance += Math.max(0, finalReturn); // Can't go below 0 on position
+                document.getElementById('userBalance').innerText = `$${userBalance.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                
+                activePositions.splice(index, 1);
+                renderActivePositions();
+            }
+        }
+
+        // AI Market Intelligence Scanner
+        function refreshAIAnalysis() {
+            const insights = [
+                "AI Scanner detects heavy buy walls around current support. Expect upward momentum in the short term.",
+                "High volatility observed on order books. Recommended strategy: Use 5x-10x leverage with strict stop-losses.",
+                "RSI indicator is approaching overbought territory. Short positions may yield quick scalping profits.",
+                "Institutional inflow detected for this asset. Trend is strongly bullish across 15-minute intervals."
+            ];
+            const randomInsight = insights[Math.floor(Math.random() * insights.length)];
+            document.getElementById('aiInsightText').innerText = randomInsight;
+        }
+
+        // Copy Trading Toggle
+        function toggleCopyTrader(name, btn) {
+            if(btn.innerText === 'Copy') {
+                btn.innerText = 'Uncopy';
+                btn.className = 'bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg transition';
+                alert(`Successfully connected to ${name}'s auto-copy bot! Trades will mirror automatically.`);
+            } else {
+                btn.innerText = 'Copy';
+                btn.className = 'bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg transition';
+                alert(`Disconnected from ${name}.`);
+            }
+        }
+
+        // Reset Account Balance
+        function resetAccount() {
+            if(confirm('Reset account balance to $10,000 and clear active trades?')) {
+                userBalance = 10000.00;
+                activePositions = [];
+                document.getElementById('userBalance').innerText = '$10,000.00';
+                renderActivePositions();
+            }
         }
     </script>
 </body>
