@@ -1,516 +1,577 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go Traders - Advanced AI Trading Platform</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        darkbg: '#0b0e14',
-                        cardbg: '#12161f',
-                        bordercolor: '#1e2533',
-                        accentgreen: '#0ecb81',
-                        accentred: '#f6465d'
-                    }
-                }
+    <title>Go Traders - Advanced Live Terminal</title>
+    <!-- Chart.js for Realistic Moving Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0b0e11;
+            --card-bg: #1e2329;
+            --border-color: #2b313a;
+            --green: #0ecb81;
+            --red: #f6465d;
+            --text-main: #eaecef;
+            --text-sub: #848e9c;
+            --gold: #f0b90b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Top Header */
+        header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 15px;
+        }
+
+        .stat-box {
+            background: #14181d;
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 0.85rem;
+        }
+
+        .stat-box label {
+            color: var(--text-sub);
+            display: block;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+
+        .stat-box val {
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .val-green { color: var(--green); }
+        .val-red { color: var(--red); }
+        .val-gold { color: var(--gold); }
+
+        /* Main Grid Layout */
+        .terminal-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 10px;
+            padding: 10px;
+            flex: 1;
+        }
+
+        @media (max-width: 850px) {
+            .terminal-grid {
+                grid-template-columns: 1fr;
             }
         }
-    </script>
-    <!-- Chart.js & Luxon for Advanced Financial Charts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0b0e14; }
-        ::-webkit-scrollbar-thumb { background: #1e2533; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #2a3447; }
+
+        /* Main Left Panel */
+        .main-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .symbol-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .price-display {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .price-up { color: var(--green); }
+        .price-down { color: var(--red); }
+
+        .chart-container {
+            position: relative;
+            height: 320px;
+            width: 100%;
+        }
+
+        /* Positions Card */
+        .positions-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            flex: 1;
+        }
+
+        .positions-card h3 {
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+            min-width: 600px;
+        }
+
+        th { 
+            color: var(--text-sub); 
+            padding-bottom: 10px; 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td { 
+            padding: 10px 0; 
+            border-bottom: 1px solid var(--border-color); 
+            vertical-align: middle;
+        }
+
+        /* Status Badge */
+        .badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .badge-win {
+            background: rgba(14, 203, 129, 0.15);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+
+        .badge-loss {
+            background: rgba(246, 70, 93, 0.15);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+
+        /* Side Panel */
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .order-book, .trade-form {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .order-book-title {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .ob-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            padding: 3px 0;
+            font-family: monospace;
+        }
+
+        .ob-ask { color: var(--red); }
+        .ob-bid { color: var(--green); }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-bottom: 4px;
+        }
+
+        .form-group input {
+            width: 100%;
+            background: #14181d;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px 10px;
+            color: var(--text-main);
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus {
+            border-color: var(--gold);
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-buy { background: var(--green); color: #000; }
+        .btn-buy:hover { background: #0bbb75; }
+
+        .btn-sell { background: var(--red); color: #fff; }
+        .btn-sell:hover { background: #e03e53; }
+
+        .btn-close {
+            background: #2b313a;
+            color: var(--text-main);
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .btn-close:hover {
+            border-color: var(--text-sub);
+        }
     </style>
 </head>
-<body class="bg-darkbg text-gray-100 font-sans antialiased min-h-screen flex flex-col">
+<body>
 
-    <!-- Top Navigation Bar -->
-    <header class="bg-cardbg border-b border-bordercolor sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-md">
-        <div class="flex items-center space-x-3">
-            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-lg text-white font-bold text-xl shadow-lg">
-                <i class="fa-solid fa-chart-line"></i>
+    <header>
+        <div class="logo">⚡ Go Traders Pro</div>
+        
+        <div class="stats-bar">
+            <div class="stat-box">
+                <label>Available Balance</label>
+                <val id="balance" class="val-gold">$10,000.00</val>
             </div>
-            <div>
-                <h1 class="font-extrabold text-lg tracking-wide bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">GO TRADERS</h1>
-                <p class="text-xs text-gray-400">AI-Powered Pro Simulation</p>
+            <div class="stat-box">
+                <label>Unrealized P&L (Win/Loss)</label>
+                <val id="unrealizedPnL" class="val-green">+$0.00 (0.00%)</val>
             </div>
-        </div>
-
-        <div class="flex items-center space-x-4 md:space-x-6">
-            <div class="hidden md:flex items-center space-x-2 bg-darkbg px-3 py-1.5 rounded-lg border border-bordercolor text-sm">
-                <span class="text-gray-400">Asset:</span>
-                <span id="currentAssetLabel" class="font-bold text-blue-400">BTC/USDT</span>
+            <div class="stat-box">
+                <label>Total Portfolio Equity</label>
+                <val id="totalEquity">$10,000.00</val>
             </div>
-            <div class="bg-darkbg px-4 py-1.5 rounded-lg border border-bordercolor flex items-center space-x-2">
-                <i class="fa-solid fa-wallet text-yellow-500"></i>
-                <span class="text-xs text-gray-400">Balance:</span>
-                <span id="userBalance" class="font-bold text-green-400 text-base">$10,000.00</span>
-            </div>
-            <button onclick="resetAccount()" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg border border-bordercolor transition">
-                <i class="fa-solid fa-rotate-right mr-1"></i> Reset
-            </button>
         </div>
     </header>
 
-    <!-- Main Dashboard Layout -->
-    <main class="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 max-w-[1700px] w-full mx-auto">
-        
-        <!-- Left Sidebar: Asset Watchlist -->
-        <section class="bg-cardbg border border-bordercolor rounded-xl p-4 flex flex-col space-y-3 shadow-lg lg:col-span-1">
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 flex items-center">
-                <i class="fa-solid fa-list-ul mr-2 text-blue-500"></i> Market Watchlist
-            </h2>
-            <div id="assetList" class="space-y-2 overflow-y-auto max-h-[420px]">
-                <!-- Dynamically populated assets -->
-            </div>
-
-            <!-- AI Market Intelligence Box -->
-            <div class="mt-auto bg-darkbg border border-bordercolor rounded-xl p-3 flex flex-col space-y-2">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-indigo-400 flex items-center">
-                        <i class="fa-solid fa-brain mr-1.5 animate-pulse"></i> AI Trend Predictor
-                    </span>
-                    <span id="aiSignalBadge" class="text-[10px] px-2 py-0.5 rounded font-bold bg-green-500/20 text-accentgreen">BULLISH</span>
-                </div>
-                <p id="aiInsightText" class="text-xs text-gray-300 leading-relaxed">Analyzing order books and volatility indices...</p>
-                <button onclick="refreshAIAnalysis()" class="w-full mt-1 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 text-xs py-1.5 rounded-lg border border-indigo-500/30 transition">
-                    Run Deep Scan
-                </button>
-            </div>
-        </section>
-
-        <!-- Center Section: Chart & Trading Control Panel -->
-        <section class="lg:col-span-2 flex flex-col space-y-4">
-            
-            <!-- Live Chart Card -->
-            <div class="bg-cardbg border border-bordercolor rounded-xl p-4 flex flex-col shadow-lg relative h-[420px]">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center space-x-3">
-                        <h3 id="chartAssetName" class="font-bold text-lg">Bitcoin (BTC)</h3>
-                        <span id="livePriceDisplay" class="text-lg font-mono font-bold text-white">$64,250.00</span>
-                        <span id="priceChangeDisplay" class="text-xs px-2 py-0.5 rounded bg-green-500/20 text-accentgreen font-semibold">+2.45%</span>
-                    </div>
-                    <div class="flex space-x-1 bg-darkbg p-1 rounded-lg border border-bordercolor text-xs">
-                        <button onclick="setChartInterval('1s')" class="px-2 py-1 rounded bg-blue-600 text-white font-semibold">1s</button>
-                        <button onclick="setChartInterval('5s')" class="px-2 py-1 rounded hover:bg-gray-800 text-gray-400">5s</button>
+    <div class="terminal-grid">
+        <!-- Main Panel -->
+        <div class="main-panel">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="symbol-info">
+                        <h2>BTC/USDT</h2>
+                        <div id="livePrice" class="price-display price-up">$65,000.00</div>
                     </div>
                 </div>
-                <div class="flex-1 relative w-full h-full">
-                    <canvas id="tradingChart"></canvas>
+                <div class="chart-container">
+                    <canvas id="marketChart"></canvas>
                 </div>
             </div>
 
-            <!-- Trade Execution Panel -->
-            <div class="bg-cardbg border border-bordercolor rounded-xl p-4 shadow-lg grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                <div class="space-y-1">
-                    <label class="text-xs text-gray-400">Investment Amount ($)</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 text-sm">$</span>
-                        <input type="number" id="tradeAmountInput" value="100" min="10" max="100000" class="w-full bg-darkbg border border-bordercolor rounded-lg pl-8 pr-4 py-2 text-sm font-bold text-white focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div class="flex space-x-1 pt-1">
-                        <button onclick="setAmount(50)" class="text-[10px] bg-darkbg hover:bg-gray-800 border border-bordercolor px-2 py-0.5 rounded text-gray-300">$50</button>
-                        <button onclick="setAmount(100)" class="text-[10px] bg-darkbg hover:bg-gray-800 border border-bordercolor px-2 py-0.5 rounded text-gray-300">$100</button>
-                        <button onclick="setAmount(500)" class="text-[10px] bg-darkbg hover:bg-gray-800 border border-bordercolor px-2 py-0.5 rounded text-gray-300">$500</button>
-                        <button onclick="setAmount(1000)" class="text-[10px] bg-darkbg hover:bg-gray-800 border border-bordercolor px-2 py-0.5 rounded text-gray-300">$1000</button>
-                    </div>
-                </div>
-
-                <div class="space-y-1">
-                    <label class="text-xs text-gray-400">Leverage Multiplier</label>
-                    <select id="leverageSelect" class="w-full bg-darkbg border border-bordercolor rounded-lg px-3 py-2 text-sm font-bold text-blue-400 focus:outline-none focus:border-blue-500">
-                        <option value="1">1x (Standard)</option>
-                        <option value="5">5x Leverage</option>
-                        <option value="10">10x Leverage</option>
-                        <option value="20" selected>20x Leverage (Pro)</option>
-                        <option value="50">50x Leverage (Risk)</option>
-                    </select>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 pt-2">
-                    <button onclick="executeTrade('BUY')" class="bg-accentgreen hover:bg-emerald-600 text-gray-950 font-extrabold py-3 rounded-xl shadow-lg transition flex flex-col items-center justify-center">
-                        <span class="text-sm tracking-wide"><i class="fa-solid fa-arrow-up mr-1"></i> LONG / BUY</span>
-                        <span class="text-[10px] opacity-80">Profit if Up 📈</span>
-                    </button>
-                    <button onclick="executeTrade('SELL')" class="bg-accentred hover:bg-red-700 text-white font-extrabold py-3 rounded-xl shadow-lg transition flex flex-col items-center justify-center">
-                        <span class="text-sm tracking-wide"><i class="fa-solid fa-arrow-down mr-1"></i> SHORT / SELL</span>
-                        <span class="text-[10px] opacity-80">Profit if Down 📉</span>
-                    </button>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- Right Sidebar: Copy Trading & Leaderboard -->
-        <section class="bg-cardbg border border-bordercolor rounded-xl p-4 flex flex-col space-y-4 shadow-lg lg:col-span-1">
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 flex items-center">
-                <i class="fa-solid fa-users mr-2 text-indigo-500"></i> Pro Copy Trading
-            </h2>
-            <div class="space-y-3 overflow-y-auto max-h-[300px]">
-                <!-- Trader 1 -->
-                <div class="bg-darkbg border border-bordercolor rounded-xl p-3 flex items-center justify-between">
-                    <div>
-                        <h4 class="font-bold text-sm text-gray-200">Alex_CryptoPro</h4>
-                        <p class="text-[10px] text-accentgreen font-semibold">+342.8% ROI (30D)</p>
-                    </div>
-                    <button onclick="toggleCopyTrader('Alex_CryptoPro', this)" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg transition">Copy</button>
-                </div>
-                <!-- Trader 2 -->
-                <div class="bg-darkbg border border-bordercolor rounded-xl p-3 flex items-center justify-between">
-                    <div>
-                        <h4 class="font-bold text-sm text-gray-200">Satoshi_King</h4>
-                        <p class="text-[10px] text-accentgreen font-semibold">+189.4% ROI (30D)</p>
-                    </div>
-                    <button onclick="toggleCopyTrader('Satoshi_King', this)" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg transition">Copy</button>
-                </div>
-            </div>
-
-            <!-- Global Leaderboard -->
-            <div class="mt-auto pt-2 border-t border-bordercolor">
-                <h3 class="text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">Global Leaderboard</h3>
-                <div class="space-y-2 text-xs">
-                    <div class="flex justify-between items-center bg-darkbg p-2 rounded-lg border border-bordercolor">
-                        <span class="text-gray-300 font-medium">1. CryptoQueen_99</span>
-                        <span class="text-green-400 font-bold">$148,290</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-darkbg p-2 rounded-lg border border-bordercolor">
-                        <span class="text-gray-300 font-medium">2. BullishAlpha</span>
-                        <span class="text-green-400 font-bold">$94,120</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Bottom Section: Active Positions & Trade History -->
-        <section class="lg:col-span-4 bg-cardbg border border-bordercolor rounded-xl p-4 shadow-lg">
-            <div class="flex items-center justify-between mb-3 border-b border-bordercolor pb-2">
-                <h3 class="font-bold text-sm uppercase tracking-wide text-gray-300 flex items-center">
-                    <i class="fa-solid fa-clock-rotate-left mr-2 text-blue-500"></i> Active Positions & Real-Time PnL
+            <div class="positions-card">
+                <h3>
+                    <span>Active Open Positions</span>
+                    <span id="activeTradesCount" style="color: var(--text-sub); font-size: 0.8rem;">0 Open</span>
                 </h3>
-                <span id="activeCountBadge" class="text-xs bg-blue-500/20 text-blue-400 px-2.5 py-0.5 rounded-full font-bold">0 Active</span>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Margin (Amount)</th>
+                                <th>Entry Price</th>
+                                <th>Current Price</th>
+                                <th>Profit / Loss ($)</th>
+                                <th>Return (%)</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="positionsTable">
+                            <!-- Live Trades Auto Generated Here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-darkbg text-gray-400 uppercase tracking-wider border-b border-bordercolor">
-                        <tr>
-                            <th class="p-3">Asset</th>
-                            <th class="p-3">Type</th>
-                            <th class="p-3">Entry Price</th>
-                            <th class="p-3">Current Price</th>
-                            <th class="p-3">Investment</th>
-                            <th class="p-3">Leverage</th>
-                            <th class="p-3">Live PnL ($ / %)</th>
-                            <th class="p-3 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="activePositionsTable" class="divide-y divide-bordercolor">
-                        <tr>
-                            <td colspan="8" class="text-center py-6 text-gray-500 italic">No active positions open. Select an asset and enter a trade above!</td>
-                        </tr>
-                    </tbody>
-                </table>
+        </div>
+
+        <!-- Side Panel -->
+        <div class="side-panel">
+            <div class="order-book">
+                <div class="order-book-title">Live Order Depth</div>
+                <div id="asksContainer"></div>
+                <div style="text-align: center; margin: 8px 0; font-weight: bold; font-size: 0.95rem;" id="obCurrentPrice">$65,000.00</div>
+                <div id="bidsContainer"></div>
             </div>
-        </section>
 
-    </main>
+            <div class="trade-form">
+                <div class="form-group">
+                    <label>Trade Amount (USDT)</label>
+                    <input type="number" id="tradeAmount" value="500" min="10">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-buy" onclick="placeTrade('BUY')">BUY / LONG 📈</button>
+                    <button class="btn btn-sell" onclick="placeTrade('SELL')">SELL / SHORT 📉</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- Footer -->
-    <footer class="bg-cardbg border-t border-bordercolor py-3 text-center text-xs text-gray-500 mt-auto">
-        &copy; 2026 Go Traders Pro Engine. Simulated real-time market execution environment.
-    </footer>
-
-    <!-- JavaScript Trading Logic -->
     <script>
-        // Assets Database
-        let assets = [
-            { symbol: 'BTC/USDT', name: 'Bitcoin', price: 64250.00, change: 2.45, history: [] },
-            { symbol: 'ETH/USDT', name: 'Ethereum', price: 3450.00, change: -1.12, history: [] },
-            { symbol: 'SOL/USDT', name: 'Solana', price: 145.20, change: 5.80, history: [] },
-            { symbol: 'DOGE/USDT', name: 'Dogecoin', price: 0.125, change: 3.40, history: [] },
-            { symbol: 'AAPL', name: 'Apple Inc.', price: 225.50, change: 0.85, history: [] }
-        ];
+        // State Management
+        let balance = 10000;
+        let currentPrice = 65000.00;
+        let positions = [];
+        let chartData = Array(35).fill(65000);
+        let chartLabels = Array(35).fill('');
 
-        let currentAsset = assets[0];
-        let userBalance = 10000.00;
-        let activePositions = [];
-        let chartInstance = null;
+        // Audio Effects (Beep Cues)
+        function playAudio(freq) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.12);
+            } catch(e){}
+        }
 
-        // Initialize App
-        window.addEventListener('DOMContentLoaded', () => {
-            renderWatchlist();
-            initChart();
-            startLiveMarketSimulation();
-            refreshAIAnalysis();
+        // Initialize Chart.js Real-time Graph
+        const ctx = document.getElementById('marketChart').getContext('2d');
+        const marketChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'BTC/USDT',
+                    data: chartData,
+                    borderColor: '#0ecb81',
+                    borderWidth: 2,
+                    tension: 0.25,
+                    pointRadius: 0,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                    x: { display: false },
+                    y: { 
+                        grid: { color: '#2b313a' },
+                        ticks: { color: '#848e9c' }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
         });
 
-        // Render Watchlist Sidebar
-        function renderWatchlist() {
-            const container = document.getElementById('assetList');
-            container.innerHTML = '';
-            assets.forEach(asset => {
-                const isSelected = asset.symbol === currentAsset.symbol;
-                const isPos = asset.change >= 0;
-                const div = document.createElement('div');
-                div.className = `p-3 rounded-xl border cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-blue-600/10 border-blue-500' : 'bg-darkbg border-bordercolor hover:border-gray-600'}`;
-                div.onclick = () => switchAsset(asset.symbol);
-                div.innerHTML = `
-                    <div>
-                        <h4 class="font-bold text-sm">${asset.symbol}</h4>
-                        <p class="text-[10px] text-gray-400">${asset.name}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-mono font-bold text-sm">$${asset.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
-                        <p class="text-[10px] font-semibold ${isPos ? 'text-accentgreen' : 'text-accentred'}">${isPos ? '+' : ''}${asset.change}%</p>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
+        // Market Engine Simulation
+        function updateMarket() {
+            // Realistic Market Fluctuation
+            const change = (Math.random() - 0.495) * 45;
+            currentPrice = Math.max(1000, currentPrice + change);
+
+            // Update Header & Price Labels
+            const priceEl = document.getElementById('livePrice');
+            priceEl.innerText = `$${currentPrice.toFixed(2)}`;
+            priceEl.className = `price-display ${change >= 0 ? 'price-up' : 'price-down'}`;
+
+            // Update Chart Dataset
+            chartData.push(currentPrice);
+            chartData.shift();
+            marketChart.data.datasets[0].borderColor = change >= 0 ? '#0ecb81' : '#f6465d';
+            marketChart.update();
+
+            // Refresh UI Views
+            renderOrderBook();
+            renderPositions();
         }
 
-        // Switch Active Asset
-        function switchAsset(symbol) {
-            currentAsset = assets.find(a => a.symbol === symbol);
-            document.getElementById('currentAssetLabel').innerText = currentAsset.symbol;
-            document.getElementById('chartAssetName').innerText = `${currentAsset.name} (${currentAsset.symbol.split('/')[0]})`;
-            renderWatchlist();
-            updateChartData();
-            refreshAIAnalysis();
-        }
+        // Render Live Order Book
+        function renderOrderBook() {
+            let asksHTML = '';
+            let bidsHTML = '';
 
-        // Initialize Chart.js
-        function initChart() {
-            const ctx = document.getElementById('tradingChart').getContext('2d');
-            
-            // Populate initial dummy history if empty
-            if(currentAsset.history.length === 0) {
-                let basePrice = currentAsset.price;
-                for(let i = 20; i >= 0; i--) {
-                    currentAsset.history.push(basePrice + (Math.random() - 0.5) * (basePrice * 0.002));
-                }
+            for (let i = 3; i >= 1; i--) {
+                const askP = (currentPrice + i * 3.5).toFixed(2);
+                const askVol = (Math.random() * 0.9 + 0.1).toFixed(3);
+                asksHTML += `<div class="ob-row ob-ask"><span>$${askP}</span><span>${askVol} BTC</span></div>`;
             }
 
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Array(currentAsset.history.length).fill(''),
-                    datasets: [{
-                        label: currentAsset.symbol,
-                        data: currentAsset.history,
-                        borderColor: '#0ecb81',
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        tension: 0.2,
-                        fill: true,
-                        backgroundColor: function(context) {
-                            const chart = context.chart;
-                            const {ctx, chartArea} = chart;
-                            if (!chartArea) return null;
-                            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-                            gradient.addColorStop(0, 'rgba(14, 203, 129, 0)');
-                            gradient.addColorStop(1, 'rgba(14, 203, 129, 0.25)');
-                            return gradient;
-                        }
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { display: false },
-                        y: { 
-                            grid: { color: '#1e2533' },
-                            ticks: { color: '#9ca3af', font: { size: 10 } }
-                        }
-                    },
-                    animation: false
-                }
-            });
+            for (let i = 1; i <= 3; i++) {
+                const bidP = (currentPrice - i * 3.5).toFixed(2);
+                const bidVol = (Math.random() * 0.9 + 0.1).toFixed(3);
+                bidsHTML += `<div class="ob-row ob-bid"><span>$${bidP}</span><span>${bidVol} BTC</span></div>`;
+            }
+
+            document.getElementById('asksContainer').innerHTML = asksHTML;
+            document.getElementById('bidsContainer').innerHTML = bidsHTML;
+            document.getElementById('obCurrentPrice').innerText = `$${currentPrice.toFixed(2)}`;
         }
 
-        // Update Chart Display
-        function updateChartData() {
-            if(!chartInstance) return;
-            chartInstance.data.datasets[0].label = currentAsset.symbol;
-            chartInstance.data.datasets[0].data = currentAsset.history;
-            const isPos = currentAsset.change >= 0;
-            chartInstance.data.datasets[0].borderColor = isPos ? '#0ecb81' : '#f6465d';
-            chartInstance.update();
-        }
+        // Place Trade Action
+        function placeTrade(type) {
+            const amountInput = document.getElementById('tradeAmount');
+            const amount = parseFloat(amountInput.value);
 
-        // Real-Time Market Tick Simulation (Changes prices dynamically)
-        function startLiveMarketSimulation() {
-            setInterval(() => {
-                assets.forEach(asset => {
-                    const fluctuation = (Math.random() - 0.49) * (asset.price * 0.0015);
-                    asset.price = Math.max(0.01, asset.price + fluctuation);
-                    asset.change = +(asset.change + (fluctuation > 0 ? 0.02 : -0.02)).toFixed(2);
-                    
-                    if(asset.symbol === currentAsset.symbol) {
-                        asset.history.push(asset.price);
-                        if(asset.history.length > 30) asset.history.shift();
-                        updateChartData();
-                        
-                        document.getElementById('livePriceDisplay').innerText = `$${asset.price.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-                        const badge = document.getElementById('priceChangeDisplay');
-                        badge.innerText = `${asset.change >= 0 ? '+' : ''}${asset.change}%`;
-                        badge.className = `text-xs px-2 py-0.5 rounded font-semibold ${asset.change >= 0 ? 'bg-green-500/20 text-accentgreen' : 'bg-red-500/20 text-accentred'}`;
-                    }
-                });
-                renderWatchlist();
-                updateActivePositionsPnL();
-            }, 1000);
-        }
-
-        // Set Trade Investment Shortcut
-        function setAmount(val) {
-            document.getElementById('tradeAmountInput').value = val;
-        }
-
-        // Execute Real Trading Order
-        function executeTrade(type) {
-            const amount = parseFloat(document.getElementById('tradeAmountInput').value);
-            const leverage = parseInt(document.getElementById('leverageSelect').value);
-
-            if(isNaN(amount) || amount <= 0) {
-                alert('Please enter a valid investment amount.');
+            if (isNaN(amount) || amount <= 0 || amount > balance) {
+                alert('Insufficient Wallet Balance or Invalid Amount!');
                 return;
             }
 
-            if(amount > userBalance) {
-                alert('Insufficient wallet balance!');
-                return;
-            }
+            balance -= amount;
+            document.getElementById('balance').innerText = `$${balance.toFixed(2)}`;
 
-            userBalance -= amount;
-            document.getElementById('userBalance').innerText = `$${userBalance.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-
-            const position = {
+            positions.push({
                 id: Date.now(),
-                assetSymbol: currentAsset.symbol,
-                type: type, // 'BUY' (Long) or 'SELL' (Short)
-                entryPrice: currentAsset.price,
-                investment: amount,
-                leverage: leverage
-            };
-
-            activePositions.push(position);
-            renderActivePositions();
-        }
-
-        // Calculate and Render Live PnL for Active Positions
-        function updateActivePositionsPnL() {
-            if(activePositions.length === 0) return;
-            
-            activePositions.forEach(pos => {
-                const asset = assets.find(a => a.symbol === pos.assetSymbol);
-                const priceDiff = asset.price - pos.entryPrice;
-                
-                // PnL formula based on Long (BUY) or Short (SELL) with Leverage
-                let pnlPercent = (priceDiff / pos.entryPrice) * 100 * pos.leverage;
-                if(pos.type === 'SELL') pnlPercent = -pnlPercent;
-
-                let pnlDollar = (pos.investment * (pnlPercent / 100));
-                pos.currentPnL = pnlDollar;
-                pos.currentPnLPercent = pnlPercent;
-                pos.currentPrice = asset.price;
+                type: type,
+                amount: amount,
+                entryPrice: currentPrice
             });
 
-            renderActivePositions();
+            playAudio(type === 'BUY' ? 900 : 450);
+            renderPositions();
         }
 
-        // Render Active Positions Table
-        function renderActivePositions() {
-            const tbody = document.getElementById('activePositionsTable');
-            document.getElementById('activeCountBadge.innerText', `${activePositions.length} Active`);
-            
-            if(activePositions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-500 italic">No active positions open. Select an asset and enter a trade above!</td></tr>`;
-                return;
-            }
+        // Close Single Position
+        function closePosition(id) {
+            const index = positions.findIndex(p => p.id === id);
+            if (index !== -1) {
+                const pos = positions[index];
+                const pnl = pos.type === 'BUY' 
+                    ? (currentPrice - pos.entryPrice) * (pos.amount / pos.entryPrice)
+                    : (pos.entryPrice - currentPrice) * (pos.amount / pos.entryPrice);
 
+                balance += (pos.amount + pnl);
+                document.getElementById('balance').innerText = `$${balance.toFixed(2)}`;
+                
+                positions.splice(index, 1);
+                playAudio(650);
+                renderPositions();
+            }
+        }
+
+        // Render Positions & Compute Portfolio Real-Time Win/Loss
+        function renderPositions() {
+            const tbody = document.getElementById('positionsTable');
             tbody.innerHTML = '';
-            activePositions.forEach(pos => {
-                const isProfit = (pos.currentPnL || 0) >= 0;
+
+            let totalPnL = 0;
+            let totalInvested = 0;
+
+            document.getElementById('activeTradesCount').innerText = `${positions.length} Open`;
+
+            positions.forEach(pos => {
+                const pnl = pos.type === 'BUY' 
+                    ? (currentPrice - pos.entryPrice) * (pos.amount / pos.entryPrice)
+                    : (pos.entryPrice - currentPrice) * (pos.amount / pos.entryPrice);
+
+                const pnlPercent = (pnl / pos.amount) * 100;
+                totalPnL += pnl;
+                totalInvested += pos.amount;
+
+                const isWinning = pnl >= 0;
+                const pnlClass = isWinning ? 'val-green' : 'val-red';
+
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-darkbg/50 transition';
                 tr.innerHTML = `
-                    <td class="p-3 font-bold">${pos.assetSymbol}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${pos.type === 'BUY' ? 'bg-green-500/20 text-accentgreen' : 'bg-red-500/20 text-accentred'}">${pos.type === 'BUY' ? 'LONG 📈' : 'SHORT 📉'}</span></td>
-                    <td class="p-3 font-mono">$${pos.entryPrice.toFixed(2)}</td>
-                    <td class="p-3 font-mono">$${(pos.currentPrice || pos.entryPrice).toFixed(2)}</td>
-                    <td class="p-3">$${pos.investment.toFixed(2)}</td>
-                    <td class="p-3 font-bold text-blue-400">${pos.leverage}x</td>
-                    <td class="p-3 font-mono font-bold ${isProfit ? 'text-accentgreen' : 'text-accentred'}">
-                        ${isProfit ? '+' : ''}${(pos.currentPnL || 0).toFixed(2)} (${isProfit ? '+' : ''}${(pos.currentPnLPercent || 0).toFixed(2)}%)
-                    </td>
-                    <td class="p-3 text-right">
-                        <button onclick="closePosition(${pos.id})" class="bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white px-2.5 py-1 rounded text-xs transition">Close</button>
-                    </td>
+                    <td style="color: ${pos.type === 'BUY' ? 'var(--green)' : 'var(--red)'}; font-weight: bold;">${pos.type}</td>
+                    <td>$${pos.amount.toFixed(2)}</td>
+                    <td>$${pos.entryPrice.toFixed(2)}</td>
+                    <td>$${currentPrice.toFixed(2)}</td>
+                    <td class="${pnlClass}" style="font-weight: bold;">${isWinning ? '+' : ''}$${pnl.toFixed(2)}</td>
+                    <td class="${pnlClass}" style="font-weight: bold;">${isWinning ? '+' : ''}${pnlPercent.toFixed(2)}%</td>
+                    <td><span class="badge ${isWinning ? 'badge-win' : 'badge-loss'}">${isWinning ? 'PROFIT' : 'LOSS'}</span></td>
+                    <td><button class="btn-close" onclick="closePosition(${pos.id})">Close Trade</button></td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            // Update Global Portfolio Summary
+            const pnlEl = document.getElementById('unrealizedPnL');
+            const totalPnLPercent = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
+            
+            pnlEl.innerText = `${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)} (${totalPnLPercent.toFixed(2)}%)`;
+            pnlEl.className = totalPnL >= 0 ? 'val-green' : 'val-red';
+
+            const equity = balance + totalInvested + totalPnL;
+            document.getElementById('totalEquity').innerText = `$${equity.toFixed(2)}`;
         }
 
-        // Close Position & Realize PnL
-        function closePosition(id) {
-            const index = activePositions.findIndex(p => p.id === id);
-            if(index !== -1) {
-                const pos = activePositions[index];
-                const finalReturn = pos.investment + (pos.currentPnL || 0);
-                userBalance += Math.max(0, finalReturn); // Can't go below 0 on position
-                document.getElementById('userBalance').innerText = `$${userBalance.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-                
-                activePositions.splice(index, 1);
-                renderActivePositions();
-            }
-        }
-
-        // AI Market Intelligence Scanner
-        function refreshAIAnalysis() {
-            const insights = [
-                "AI Scanner detects heavy buy walls around current support. Expect upward momentum in the short term.",
-                "High volatility observed on order books. Recommended strategy: Use 5x-10x leverage with strict stop-losses.",
-                "RSI indicator is approaching overbought territory. Short positions may yield quick scalping profits.",
-                "Institutional inflow detected for this asset. Trend is strongly bullish across 15-minute intervals."
-            ];
-            const randomInsight = insights[Math.floor(Math.random() * insights.length)];
-            document.getElementById('aiInsightText').innerText = randomInsight;
-        }
-
-        // Copy Trading Toggle
-        function toggleCopyTrader(name, btn) {
-            if(btn.innerText === 'Copy') {
-                btn.innerText = 'Uncopy';
-                btn.className = 'bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg transition';
-                alert(`Successfully connected to ${name}'s auto-copy bot! Trades will mirror automatically.`);
-            } else {
-                btn.innerText = 'Copy';
-                btn.className = 'bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg transition';
-                alert(`Disconnected from ${name}.`);
-            }
-        }
-
-        // Reset Account Balance
-        function resetAccount() {
-            if(confirm('Reset account balance to $10,000 and clear active trades?')) {
-                userBalance = 10000.00;
-                activePositions = [];
-                document.getElementById('userBalance').innerText = '$10,000.00';
-                renderActivePositions();
-            }
-        }
+        // Live Loop (Updates every 550ms)
+        setInterval(updateMarket, 550);
     </script>
 </body>
 </html>
